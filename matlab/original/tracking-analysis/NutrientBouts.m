@@ -1,0 +1,249 @@
+%% Micromovement bouts below 1mm/s and Walking bouts
+Walking_vec=walking_fun(Steplength_Sm_c,Steplength_Sm180_h,params);
+if ~exist('HeadingDiff','var')
+    flies_idx=params.IndexAnalyse;
+[~,~,HeadingDiff] =...
+            Heading_WalkingDir(Heads_Sm,Tails_Sm,Centroids_Sm);
+end
+[Etho_Speed,Thresholds]=Etho_Speed_fun(Steplength_Sm_h,Walking_vec,HeadingDiff,params);
+save([Variablesfolder 'Micromov&WalkingVecSm180_' Exp_num Exp_letter ' ' date '.mat'],...
+    'Etho_Speed','Walking_vec','Thresholds','-v7.3')
+display('Etho_Speed_fun and Walking vector saved')
+%% Activity Bouts
+Headbouts
+%% Heat maps of different speed/headmm bouts
+% plot_Etho_Speed_2Dhist
+%% Visits
+% load([Variablesfolder 'OverlappingBubbles&CumulativeTime0003A 20-Mar-2015.mat'],'InSpot')
+subs=params.Subs_Numbers;
+[Binary_V,Binary_VRV,Breaks,Binary_Break,Thr_V,ALERT_IHI_V] = Visit_fun(FlyDB,Binary_Head_mm, Heads_Sm, InSpot,Steplength_Sm_c,subs);
+[DurInV,CumTimeV,NumBoutsV] = Binary2DurInCumTime_V(FlyDB,Binary_V,Binary_Head_mm,InSpot,params.Subs_Numbers);
+[DurInVRV] = Binary2DurInCumTime_V(FlyDB,Binary_VRV,Binary_Head_mm,InSpot,params.Subs_Numbers);
+
+% % % Composition_of_visits_allboxplots
+% Composition_of_visits_merged
+save([Variablesfolder 'Visits&CumulativeTimeV5mm'  Exp_num Exp_letter,...
+    ' ' date '.mat'],'DurInV','DurInVRV','Binary_VRV','CumTimeV','Binary_V','Binary_Break','NumBoutsV','Breaks','Thr_V','ALERT_IHI_V','-v7.3')
+display('Visits saved')
+%% Plotting Bouts Durations
+% [ColorsinPaper,orderinpaper]=ColorsPaper5cond_fun(Exp_num, Exp_letter,params);
+% Colorsnew=nan(size(ColorsinPaper));
+% Colorsnew(orderinpaper,:)=ColorsinPaper;
+% hist_bout_duration(DurInV,[1 3 4 5 6],params,2,30,[170 20],...%80,[120 20],...Conditions
+%     'Visit Durations',Colorsnew,10);
+% % hist_bout_duration(DurInAB,Conditions,params,2,150,[15 15],...
+% %     'AB Durations');
+% 
+% % savefig_withname(1,'600','png',DataSaving_dir_temp,Exp_num,Exp_letter,'Bouts')
+%% Histogram of IVI
+% hist_bout_duration(DurInV,[1 3],params,5,10,[60 20],...%80,[120 20],...Conditions
+%     'Visit Durations');
+
+
+
+%% Area Coverage
+% Area_coverage_2DHist
+%% Distance from Spot
+% Hist_dist2spot_visits
+%% Origin of Visits (Transition Probabilities to type j from type i) -updated 27-Apr-2015
+% % Adj_Thr=16;%mm
+% % [TrEvents,TrArea,Etho_Tr,Etho_Tr_Colors]=TransitionProb(DurInV,Heads_Sm,FlyDB,params);
+% plotting=1;
+% Conditions=unique(params.ConditionIndex);
+% FtSz=8;
+% FntName='arial';
+% close all
+% % [TrP_Median,TrP_Mean,TrP_Stderr,barhandle] = plot_TrPr(TrEvents,Conditions,params.Subs_Names,plotting,'Transition Probabilities','Median',params,FtSz,FntName);
+% plot_TrPr(TrArea,Conditions,params.Subs_Names,plotting,'Area','Median',params,FtSz,FntName);
+% savefig_withname(0,'600','png',DataSaving_dir_temp,Exp_num,Exp_letter,'Visits')
+% % % save([Variablesfolder 'TrPr'  Exp_num Exp_letter,...
+% % %     ' ' date '.mat'],'TrEvents','Etho_Tr','Etho_Tr_Colors','Adj_Thr','-v7.3')
+% % % display('Transitions Pr saved')
+%% Comparing times inside vs outside the substrate
+% Plotting_total_times_etho
+%% Plotting FlyPAD data side by side with Tracking Data
+% % load('E:\Analysis Data\Experiment 0003\FlyPAD\both_SCRIPT_1_7\SCRIPT1_7_RemoveGlobalNonEaters_ForPLOTS.mat')
+% %%% Load
+% % the Events.mat structure created after the plots (since this one includes
+% % the feeding bursts info)
+% % close all
+% Conditions=unique(params.ConditionIndex);
+% MaxSample=360000;
+% FlyPAD_var='Feeding Bursts';%'Activity Bouts';%
+% Tracking_var='Head micromovement bouts';%'Visits';%'Activity Bouts';%
+% plotting='All';
+% plot_FlyPAD_Tracking(Events,FlyPAD_var,Tracking_var,CumTimeH,DurInH,...
+%     Conditions,params,plotting,MaxSample,DataSaving_dir_temp,Exp_num,Exp_letter)
+% savefig_withname(0,'600','png',DataSaving_dir_temp,Exp_num,Exp_letter,...
+%     'Total times & Ethogram')
+%% MannWhitney Capacitance data
+% % % for lcond=Conditions
+% % %     p=ranksum(ActivityBoutNum{1}(:,lcond),...
+% % %         ActivityBoutNum{2}(:,lcond));
+% % %     display([params.LabelsShort{lcond} ', Yeast vs Sucrose: ' num2str(p)])
+% % % end
+
+%% Histogram of concatenated bout for flies in a given condition
+% close all
+% x_label='Revisit duration [s]';%'Speed in QuickDis [mm/s]';%'Dist from spot in QD [mm]';%
+% y_label='Event Nº';%'Revisits';%
+% saveplot=0;
+% Rank_Freq_plot(RawRevisits,Conditions,params,2,100,[100 100],... QuickDiseng 80,[100 10] RawRevisits 50,[50 10]
+%     x_label,y_label,saveplot,Dropbox_choicestrategies,Exp_num,Exp_letter,DataSaving_dir_temp)
+%% Merging different databases
+%%% On DB2:
+% numconditionsDB1=4;
+% CondIdxDB2=params.ConditionIndex+numconditionsDB1;
+% BoutsInfo2=BoutsInfo.DurInOld;
+% Labels2=params.LabelsShort;
+% save('mergevar.mat','CondIdxDB2','BoutsInfo2','Labels2')
+%%% On DB1:
+% load('mergevar.mat')
+% for lsubs=params.Subs_Numbers
+%     BoutsInfo.DurInOld{lsubs}=[BoutsInfo.DurInOld{lsubs};BoutsInfo2{lsubs}];
+% end
+% params2.ConditionIndex=[params.ConditionIndex,CondIdxDB2];
+% params2.LabelsShort=[params.LabelsShort;Labels2];
+% params2.Subs_Names=params.Subs_Names;
+
+%% Long bouts duration
+% [Counts_Cond,binfly]=hist_boutlength(BoutsInfo.DurInOld,1,Conditions,params);
+% figure('Position',[100 50 params.scrsz(3)-250 params.scrsz(4)-250],'Color','w');
+% for lsubs=params.Subs_Numbers
+%     subplot(1,2,lsubs)
+%     plot_bar(binfly{lsubs}'/60,[params.Subs_Names{lsubs}(1:end-4),...
+%         ' bout duration with p \leq 0.05 [min]'],[params.Subs_Names{lsubs},...
+%         ' bout duration with p_0.05'],Conditions, params,'Bouts',...
+%         Dropbox_choicestrategies,DataSaving_dir_temp,Exp_num,Exp_letter,1,1)
+% end
+% saveplots(Dropbox_choicestrategies,'Bouts',...
+%     [Exp_num Exp_letter 'Long bout durations'],...
+%     DataSaving_dir_temp,Exp_num,1,0)
+
+
+%% Total times
+% Totaltimes=cell(length(params.Subs_Names),1);
+% % BoutsInfo.DurInOld=DurInOld;
+% figure('Position',[100 50 params.scrsz(3)-250 params.scrsz(4)-250],'Color','w');
+% for lsubs=params.Subs_Numbers
+%     Totaltimes{lsubs}=nan(size(BoutsInfo.DurInOld{lsubs},1),1);
+%     for lfly=1:size(BoutsInfo.DurInOld{lsubs},1)
+%         Totaltimes{lsubs}(lfly)=nansum(BoutsInfo.DurInOld{lsubs}{lfly})/60;%(BoutsInfo.DurIn{lsubs}{lfly}<60)
+%     end
+%
+%     subplot(1,2,lsubs)
+%     %     plot_bar(Totaltimes{lsubs},['Total time in ' params.Subs_Names{lsubs},...
+%     %         ' [min]'],Conditions,params,1,saving_dir,7,20,3,'calibri')
+%     plot_bar(Totaltimes{lsubs},['Total time in ' params.Subs_Names{lsubs},...
+%         ' [min]'],[' Total time in ' params.Subs_Names{lsubs}],[2 4 1 3],...[8 4 7 1 3]
+%         params,'Total times & Ethogram',...
+%         Dropbox_choicestrategies,DataSaving_dir_temp,Exp_num,Exp_letter,0,1,...
+%         5,14,3,'arial')
+%
+% end
+% saveplots(Dropbox_choicestrategies,'Total times & Ethogram',...
+%     [Exp_num Exp_letter ' Total times'],...
+%     DataSaving_dir_temp,Exp_num,0,0)
+
+%% Number of Bouts
+% figure('Position',[100 50 params.scrsz(3)-250 params.scrsz(4)-250],'Color','w');
+% for lsubs=params.Subs_Numbers
+%     subplot(1,2,lsubs)
+%     plot_bar(BoutsInfo.NumBouts(lsubs,:)',['Number of ' params.Subs_Names{lsubs},...
+%         ' visits'],['Number of ' params.Subs_Names{lsubs},...
+%         ' visits'],Conditions, params,'Bouts',...
+%         Dropbox_choicestrategies,DataSaving_dir_temp,Exp_num,Exp_letter,1,...
+%         1,5,18,3,'calibri')
+%     ylim([0 200])
+% end
+%
+% saveplots(Dropbox_choicestrategies,'Bouts',...
+%     [Exp_num Exp_letter 'Number of Bouts'],...
+%     DataSaving_dir_temp,Exp_num,0,0)
+%
+% %%% MannWhitney
+% for lcond=Conditions
+%     p=ranksum(BoutsInfo.NumBouts(1,params.ConditionIndex==lcond),...
+%         BoutsInfo.NumBouts(2,params.ConditionIndex==lcond));
+%     display([params.LabelsShort{lcond} ', Yeast vs Sucrose: ' num2str(p)])
+% end
+%% Sanity Check TrPr: Number of Bouts from Transition Matrix -updated 27-Apr-2015
+% close all
+% NumBouts2=zeros(length(params.Subs_Names),size(TrEvents,3));
+% figure('Position',[100 50 800 600],'Color','w');
+% for lsubs=params.Subs_Numbers
+%     for lfly=1:size(TrEvents,3)
+%     NumBouts2(lsubs,lfly)=sum(sum(TrEvents(:,[lsubs lsubs+size(TrEvents,1)],lfly)));
+%     end
+% end
+% lcondcounter=0;
+% for lcond=Conditions
+%     lcondcounter=lcondcounter+1;
+%     subplot(2,ceil(length(Conditions)/2),lcondcounter)
+%     plot_boxplot_tiltedlabels(NumBouts2(:,params.ConditionIndex==lcond)',params.Subs_Names);
+%     font_style(params.LabelsShort{lcond},[],'Number of Tr Bouts')
+% end
+% figure('Position',[100 50 800 600],'Color','w');
+% lcondcounter=0;
+% for lcond=Conditions
+%     lcondcounter=lcondcounter+1;
+%     subplot(2,ceil(length(Conditions)/2),lcondcounter)
+%     plot_boxplot_tiltedlabels(NumBoutsV(:,params.ConditionIndex==lcond)',params.Subs_Names);
+%     font_style(params.LabelsShort{lcond},[],'Number of Visits')
+% end
+%% Origin of Visits
+% figure('Position',[100 50 params.scrsz(3)-250 params.scrsz(4)-250],'Color','w');
+% for lsubs=params.Subs_Numbers
+%     switch lsubs
+%         case 1
+%     subplot(1,2,lsubs)
+%     plot_bar(squeeze(sum(BoutsInfo.TrEvents(1,lsubs,:),1)),..../squeeze(sum(BoutsInfo.TrEvents(:,lsubs,:))),...
+%         ['Yeast',...% params.Subs_Names{lsubs}(1:end-4),...  ['% of Yeast',
+%        ' to Yeast bouts' ],Conditions,params,1,saving_dir)%' bouts from Sucrose'
+%         case 2
+%     subplot(1,2,lsubs)
+%  plot_bar(squeeze(sum(BoutsInfo.TrEvents(2,lsubs,:),1)),..../squeeze(sum(BoutsInfo.TrEvents(:,lsubs,:))),...
+%  ['Sucrose',...% params.Subs_Names{lsubs}(1:end-4),... ['% of Sucrose',
+%        ' to Sucrose bouts' ],Conditions,params,1,saving_dir)%' bouts from Yeast'
+%     end
+% end
+% saveas(gcf,[saving_dir 'S2S&Y2Y.fig'],'fig')
+% export_fig S2S&Y2Y -tif
+%
+% figure('Position',[100 50 params.scrsz(3)-250 params.scrsz(4)-250],'Color','w');
+% for lsubs=params.Subs_Numbers
+%     switch lsubs
+%         case 1
+%     subplot(1,2,lsubs)
+%      plot_bar(squeeze(sum(BoutsInfo.TrEvents(3,lsubs,:),1)),..../squeeze(sum(BoutsInfo.TrEvents(:,lsubs,:))),...
+%         ['Yeast',...% params.Subs_Names{lsubs}(1:end-4),...['% of Yeast'
+%        ' revisits' ],Conditions,params,1,saving_dir)%' bouts from Sucrose'
+%         case 2
+%     subplot(1,2,lsubs)
+%      plot_bar(squeeze(sum(BoutsInfo.TrEvents(3,lsubs,:),1)),..../squeeze(sum(BoutsInfo.TrEvents(:,lsubs,:))),...
+%         ['Sucrose',...% params.Subs_Names{lsubs}(1:end-4),... ['% of Sucrose'
+%        ' revisits' ],Conditions,params,1,saving_dir)%' bouts from Yeast'
+%
+%     end
+% end
+% saveas(gcf,[saving_dir 'S&YRevisits.fig'],'fig')
+% export_fig S&YRevisits -tif
+%
+% figure('Position',[100 50 params.scrsz(3)-250 params.scrsz(4)-250],'Color','w');
+% for lsubs=params.Subs_Numbers
+%     switch lsubs
+%         case 1
+%     subplot(1,2,lsubs)
+%      plot_bar(squeeze(sum(BoutsInfo.TrEvents(2,lsubs,:),1)),..../squeeze(sum(BoutsInfo.TrEvents(:,lsubs,:))),...
+%         ['Yeast',...% params.Subs_Names{lsubs}(1:end-4),...['% of Yeast'
+%        ' from Sucrose bouts' ],Conditions,params,1,saving_dir)%' bouts from Sucrose'
+%         case 2
+%     subplot(1,2,lsubs)
+%     plot_bar(squeeze(sum(BoutsInfo.TrEvents(1,lsubs,:),1)),..../squeeze(sum(BoutsInfo.TrEvents(:,lsubs,:))),...
+%         ['Sucrose',...% params.Subs_Names{lsubs}(1:end-4),... ['% of Sucrose'
+%        ' from Yeast bouts' ],Conditions,params,1,saving_dir)%' bouts from Yeast'
+%     end
+% end
+% saveas(gcf,[saving_dir 'S2Y&Y2S.fig'],'fig')
+% export_fig S2Y&Y2S -tif
+

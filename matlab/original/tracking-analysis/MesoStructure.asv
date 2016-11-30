@@ -1,0 +1,90 @@
+%% Spots meso-structure
+
+%% Microdisplacement vs Grooming
+%%% Grooming and Feeding usually occur under 1mm/s. I've observed that when
+%%% flies feed from spilled yeast, they don't stay in place as they do when
+%%% grooming. Therefore, to distinguish grooming from microdisplacements
+%%% I'll evaluate the area covered (in px) when fly is below 1 mm/s in the
+%%% annotated yeast bouts when fly d>2 mm and when grooming. Do they have a
+%%% different signature?
+%%%
+flies_idx=params.IndexAnalyse;
+Microdispl=cell(size(Steplength_Sm_h));
+for lfly=flies_idx
+    lfly
+    X=Steplength_Sm_h{lfly}*params.px2mm*params.framerate;
+    %%% Find local minima around
+    temp=diff(X);
+    temp(temp>0)=1;
+    temp(temp<0)=-1;
+    localminima=find(diff(temp)==2);%frames locating local minima in speed
+    Microdispl{lfly}=ones(length(X),1);% ones are the regions to be analysed
+    Microdispl{lfly}(X>1)=2; % twos are the regions to exclude from the analysis
+    
+    bout1start=find(conv(double(X>1),[1 -1])==1);
+    bout1end=find(conv(double(X>1),[1 -1])==-1);
+    if ~isempty(bout1start)
+        for lbout=1:length(bout1start)
+            startpoint=find(localminima<=bout1start(lbout),1,'last');
+            endpoint=find(localminima>=bout1end(lbout),1,'first');
+            Microdispl{lfly}(localminima(startpoint):localminima(endpoint))=2;
+        end
+    end
+    
+end
+% plot(localminima,X(localminima),'o',...
+%     'MarkerFaceColor',Color(3,:),'MarkerEdgeColor',Color(3,:),...
+%     'MarkerSize',4)
+%% Plot area coverage of micromovements
+close all
+fig=figure('Position',[10 350 700 650],'Color','w');%
+hold on
+Mm_inside=Mm_inside(~isnan(Mm_inside));
+Mm_outside=Mm_outside(~isnan(Mm_outside));
+Mm_inout=Mm_inout(~isnan(Mm_inout));
+Mm_Grooming=Mm_Grooming(~isnan(Mm_Grooming));
+Color=Colors(3);
+h=nan(3,1);
+h(1)=plot(1:length(Mm_inside),Mm_inside,'o','MarkerSize',5,...
+    'MarkerEdgeColor',Color(1,:),'MarkerFaceColor',Color(1,:));
+h(2)=plot(1:length(Mm_outside),Mm_outside,'o','MarkerSize',5,...
+    'MarkerEdgeColor',Color(2,:),'MarkerFaceColor',Color(2,:));
+h(3)=plot(1:length(Mm_Grooming),Mm_Grooming,'o','MarkerSize',5,...
+    'MarkerEdgeColor',Color(3,:),'MarkerFaceColor',Color(3,:));
+plot([1 197],[2.5 2.5],':','Color',[.7 .7 .7])
+legend(h,{'Inside yeast';'At yeast edge';'Grooming'})
+font_style('Area covered during micromovement','Event Nº',...
+    'Area covered per mm [px/mm]')
+%% Histogram of area coverage
+close all
+fig=figure('Position',[10 350 700 650],'Color','w');%
+hold on
+bins=[0:15 Inf];
+FtSz=14;%20;
+
+[counts_in]=histc(Mm_inside,bins);
+[counts_out]=histc(Mm_outside,bins);
+[counts_inout]=histc(Mm_inout,bins);
+[counts_gr]=histc(Mm_Grooming,bins);
+
+counts_in=counts_in(1:end-1);
+counts_out=counts_out(1:end-1);
+counts_inout=counts_inout(1:end-1);
+counts_gr=counts_gr(1:end-1);
+
+% h=bar(bins(1:end-1),[(counts_in/sum(counts_in)),(counts_inout/sum(counts_inout)),...
+%     (counts_out/sum(counts_out)),...
+%     (counts_gr/sum(counts_gr))]);
+h=bar(bins(1:end-1),[(counts_out/sum(counts_out)),...
+    (counts_gr/sum(counts_gr))]);
+for lhist=1:2%3
+    set(h(lhist),'FaceColor',Color(lhist,:),'EdgeColor',Color(lhist,:));
+end
+font_style('Area covered during micromovement','Area covered per mm [px/mm]',...
+    'Relative Frequency','normal','arial',FtSz)
+xlim([bins(1)-1 bins(end-1)+1])
+% legend(h,{'Inside Y';'Partially inside Y';'At Y edge';'Grooming'})
+legend(h,{'At Y edge';'Grooming'})
+figname='Area covered during micromovement - Outside Y & grooming';
+print('-dtiff','-r200',[DataSaving_dir_temp Exp_num '\Plots\Manual Ann\',...
+    figname '.tif'])%'-r600'

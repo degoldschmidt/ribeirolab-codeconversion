@@ -1,0 +1,140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WorkflowBuilder Version="2.0.1">
+  <Workflow xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:q3="clr-namespace:Bonsai.IO;assembly=Bonsai.System" xmlns:q2="clr-namespace:Bonsai.Vision;assembly=Bonsai.Vision" xmlns:q1="clr-namespace:Bonsai.PointGrey;assembly=Bonsai.PointGrey" xmlns="https://horizongir.org/bonsai">
+    <Nodes>
+      <Expression xsi:type="Source">
+        <PropertyMappings />
+        <Generator xsi:type="q1:FlyCapture">
+          <q1:Index>0</q1:Index>
+        </Generator>
+      </Expression>
+      <Expression xsi:type="MemberSelector">
+        <Selector>Source.Image</Selector>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <PropertyMappings />
+        <Combinator xsi:type="q2:VideoWriter">
+          <q2:FileName>test2.avi</q2:FileName>
+          <q2:Suffix>None</q2:Suffix>
+          <q2:Buffered>true</q2:Buffered>
+          <q2:FourCC>FMP4</q2:FourCC>
+          <q2:FrameRate>30</q2:FrameRate>
+          <q2:FrameSize>
+            <q2:Width>0</q2:Width>
+            <q2:Height>0</q2:Height>
+          </q2:FrameSize>
+          <q2:ResizeInterpolation>NearestNeighbor</q2:ResizeInterpolation>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <PropertyMappings />
+        <Combinator xsi:type="q2:Grayscale" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <PropertyMappings />
+        <Combinator xsi:type="q2:Threshold">
+          <q2:ThresholdValue>128</q2:ThresholdValue>
+          <q2:MaxValue>255</q2:MaxValue>
+          <q2:ThresholdType>BinaryInv</q2:ThresholdType>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <PropertyMappings />
+        <Combinator xsi:type="q2:Crop">
+          <q2:RegionOfInterest>
+            <q2:X>390</q2:X>
+            <q2:Y>260</q2:Y>
+            <q2:Width>820</q2:Width>
+            <q2:Height>675</q2:Height>
+          </q2:RegionOfInterest>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <PropertyMappings />
+        <Combinator xsi:type="q2:FindContours">
+          <q2:Mode>External</q2:Mode>
+          <q2:Method>ChainApproxNone</q2:Method>
+          <q2:Offset>
+            <q2:X>0</q2:X>
+            <q2:Y>0</q2:Y>
+          </q2:Offset>
+          <q2:MinArea xsi:nil="true" />
+          <q2:MaxArea xsi:nil="true" />
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <PropertyMappings />
+        <Combinator xsi:type="q2:BinaryRegionAnalysis" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <PropertyMappings />
+        <Combinator xsi:type="q2:LargestBinaryRegion" />
+      </Expression>
+      <Expression xsi:type="q3:CsvWriter">
+        <q3:PropertyMappings />
+        <q3:FileName>data_test2.csv</q3:FileName>
+        <q3:Append>false</q3:Append>
+        <q3:Suffix>None</q3:Suffix>
+        <q3:IncludeHeader>false</q3:IncludeHeader>
+      </Expression>
+    </Nodes>
+    <Edges>
+      <Edge>
+        <From>0</From>
+        <To>1</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>1</From>
+        <To>3</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>1</From>
+        <To>2</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>3</From>
+        <To>4</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>4</From>
+        <To>5</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>5</From>
+        <To>6</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>6</From>
+        <To>7</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>7</From>
+        <To>8</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>8</From>
+        <To>9</To>
+        <Label>Source1</Label>
+      </Edge>
+    </Edges>
+  </Workflow>
+  <ExtensionTypes>
+    <Type>Bonsai.PointGrey.FlyCapture, Bonsai.PointGrey, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.VideoWriter, Bonsai.Vision, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.Grayscale, Bonsai.Vision, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.Threshold, Bonsai.Vision, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.Crop, Bonsai.Vision, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.FindContours, Bonsai.Vision, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.BinaryRegionAnalysis, Bonsai.Vision, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.LargestBinaryRegion, Bonsai.Vision, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.IO.CsvWriter, Bonsai.System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null</Type>
+  </ExtensionTypes>
+</WorkflowBuilder>
