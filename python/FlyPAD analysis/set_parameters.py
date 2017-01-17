@@ -1,6 +1,6 @@
-#import tkinter
+import sys
 from tkinter import *
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 
 ## This is the name of the file where the data will be stored
 """
@@ -12,86 +12,63 @@ cd(DataPathName)
 DataFilename2=[DataPathName DataFilename];                                      # Path + file variable
 """
 
-def askopenfilename(self):
-    """
-    Return a file name of chosen file.
-    """
-    # get filename
-    filename = filedialog.askopenfilename(**self.file_opt)
-    # open file on your own
-    if filename:
-        return open(filename, 'r')
+def cutstr(s, between):
+    try:
+        out = []
+        if len(s) > 0:
+            for ind in between:
+                if ind[0] not in s:
+                    print("Warning: string does not contain delimiter.")
+                    return None
+                if ind[1] not in s:
+                    print("Warning: string does not contain delimiter.")
+                    return None
+                out.append(s.split(ind[0])[1].split(ind[1])[0])
+            return tuple(out)
+        else:
+            print("Warning: empty string.")
+            return None
+    except:
+        print(s)
+        print("Unexpected error:", sys.exc_info()[0])
 
 
-def set_parameters():
+
+def openf(ext, filesdir):
     """
-    Return Events.ConditionLabel and Events.SubstrateLabel
+    Return an opened file in read mode.
+    Parameters:
+    - ext: default extension of the file  [string]
+    """
+    return filedialog.askopenfile(mode='r', defaultextension=ext, title = "Choose a file.", initialdir=filesdir)
+
+
+def set_parameters(filesdir):
+    """
+    Return Events.ConditionLabel and Events.SubstrateLabel as python dictionary
     """
     Tk().withdraw()
     if messagebox.askquestion("Load log file", "Do you want to load the log file?", default=messagebox.YES):
-        print("yes")
-        
+        ### USER SAYS YES
+        with openf("txt", filesdir) as f:                                       # opens file from filedialog
+            lines = f.readlines()                                               # reading line by line
+            condLabels = []                                                     # temp. list for condition labels
+            substrLabels = []                                                   # temp. list for substrate labels
+            for line in lines:
+                data = cutstr(line, [("{","}"), ("'","'")])                 # relevant data from line
+                if "ConditionLabel" in line:
+                    condLabels.append(data)
+                elif "SubstrateLabel" in line:
+                    substrLabels.append(data)
+            condLabels.sort(key=lambda x: x[0])
+            substrLabels.sort(key=lambda x: x[0])
+        events = {"ConditionLabel": [conds[1] for conds in condLabels], "SubstrateLabel": [subs[1] for subs in substrLabels]}
+        return events
     else:
+        ### USER SAYS NO
         print("no")
+        print("using default values instead")
 
-
-"""
-
-if strcmpi(LoadLOGFILE,'Y')                                                     # If Answer: YES
-[LOGFilename LOGPathName]=uigetfile('*.txt','Please select the LOG file with condition labels and Substrate labels'); # file dialog for log file
-
-cd (LOGPathName)
-delimiter = ';';                                                                # log file delimiter
-formatSpec = '#s#[^\n\r]';                                                      # string [^] ??
-fileID = fopen(LOGFilename,'r');                                                # open log file for reading
-dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter,  'ReturnOnError', false); # scan log file text for entries
-fclose(fileID);                                                                 # close log file
-LOGFILEDATA = dataArray{:, 1};                                                  # make it 1D cell
-for nEntries=1:length(LOGFILEDATA)                                              # go through log file data
-    try
-        eval(LOGFILEDATA{nEntries})                                             # evaluate as MATLAB command LOGFILEDATA >> Events.ConditionLabel and Events.SubstrateLabel
-    catch
-        warning('Check the log file, there were some lines that could not be executed')
-    end
-end
-clearvars filename delimiter formatSpec fileID dataArray ans;                   # clear variables (!!!think about this!!!)
-
-# default values if no log file
-else
-## Put analysis parameters here
-# these are the labels for different conditions
-Events.ConditionLabel{1}= 'attp2 1D@0';
-Events.ConditionLabel{2}= 'R26E02 1D@0';
-Events.ConditionLabel{3}= 'R28E01 1D@0';
-Events.ConditionLabel{4}= 'R39E02 1D@0';
-Events.ConditionLabel{5}= 'R72D06 1D@0';
-Events.ConditionLabel{6}= 'R14A02 1D@0';
-Events.ConditionLabel{7}= 'R17A11 1D@0';
-Events.ConditionLabel{8}= 'R18A04 1D@0';
-Events.ConditionLabel{9}= 'R17A10 1D@0';
-Events.ConditionLabel{10}= 'R21H11 1D@0';
-Events.ConditionLabel{11}= 'R20E08 1D@0';
-Events.ConditionLabel{12}= 'R22E06 1D@0';
-Events.ConditionLabel{13}= 'R18A12 1D@0';
-Events.ConditionLabel{14}= 'attp2 1D@100';
-Events.ConditionLabel{15}= 'R22E06 1D@100';
-Events.ConditionLabel{16}= 'R18A12 1D@100';
-Events.ConditionLabel{17}= 'R21H11 1D@100';
-Events.ConditionLabel{18}= 'R20E08 1D@100';
-Events.ConditionLabel{19}= 'R18A04 1D@100';
-Events.ConditionLabel{20}= 'R17A10 1D@100';
-Events.ConditionLabel{21}= 'R17A11 1D@100';
-Events.ConditionLabel{22}= 'R14A02 1D@100';
-Events.ConditionLabel{23}= 'R72D06 1D@100';
-Events.ConditionLabel{24}= 'R39G02 1D@100';
-Events.ConditionLabel{25}= 'R28E01 1D@100';
-Events.ConditionLabel{26}= 'R26E02 1D@100';
-
-
-## These are the labels for substrates (what goes on channel 1 and 2)
-Events.SubstrateLabel{1}='10#Yeast';
-Events.SubstrateLabel{2}='10#Sucrose';
-
-end
-"""
-set_parameters()
+Events = set_parameters("/Users/degoldschmidt/Google Drive/PhD Project/Data/DN-TrpA1/09012017")
+print("Condition labels:\n", Events["ConditionLabel"])
+print("Substrate labels:\n", Events["SubstrateLabel"])
