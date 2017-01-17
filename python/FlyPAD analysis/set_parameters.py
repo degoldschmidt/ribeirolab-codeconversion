@@ -2,8 +2,6 @@ import sys
 from tkinter import *
 from tkinter import messagebox, filedialog
 
-
-
 def cutstr(s, between):
     try:
         out = []
@@ -39,7 +37,6 @@ def set_parameters(filesdir):
     """
     Return Events.ConditionLabel and Events.SubstrateLabel as python dictionary
     """
-    Tk().withdraw()
     if messagebox.askquestion("Load log file", "Do you want to load the log file?", default=messagebox.YES):
         ### USER SAYS YES
         with openf("txt", filesdir) as f:                                       # opens file from filedialog
@@ -61,6 +58,10 @@ def set_parameters(filesdir):
         print("no")
         print("using default values instead")
 
-Events = set_parameters("/Users/degoldschmidt/Google Drive/PhD Project/Data/DN-TrpA1/09012017")
-print("Condition labels:\n", Events["ConditionLabel"])
-print("Substrate labels:\n", Events["SubstrateLabel"])
+"""
+This is a unit test function
+"""
+if __name__=='__main__':
+    Events = set_parameters("/Users/degoldschmidt/Google Drive/PhD Project/Data/DN-TrpA1/09012017")
+    print("Condition labels:\n", Events["ConditionLabel"])
+    print("Substrate labels:\n", Events["SubstrateLabel"])
