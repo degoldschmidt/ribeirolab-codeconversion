@@ -2,15 +2,7 @@ import sys
 from tkinter import *
 from tkinter import messagebox, filedialog
 
-## This is the name of the file where the data will be stored
-"""
-[DataFilename DataPathName ] = uiputfile;                                     # opens filedialog
-if strcmp(DataFilename(end-3:end),'.rpt')
-    DataFilename(end-3:end)='.mat';                                             # force ending to be .mat, instead .rpt
-end
-cd(DataPathName)
-DataFilename2=[DataPathName DataFilename];                                      # Path + file variable
-"""
+
 
 def cutstr(s, between):
     try:
