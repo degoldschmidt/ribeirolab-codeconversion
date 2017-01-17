@@ -44,15 +44,15 @@ def set_parameters(filesdir):
             condLabels = []                                                     # temp. list for condition labels
             substrLabels = []                                                   # temp. list for substrate labels
             for line in lines:
-                data = cutstr(line, [("{","}"), ("'","'")])                 # relevant data from line
+                data = cutstr(line, [("{","}"), ("'","'")])                     # relevant data from line
                 if "ConditionLabel" in line:
                     condLabels.append(data)
                 elif "SubstrateLabel" in line:
                     substrLabels.append(data)
             condLabels.sort(key=lambda x: x[0])
             substrLabels.sort(key=lambda x: x[0])
-        events = {"ConditionLabel": [conds[1] for conds in condLabels], "SubstrateLabel": [subs[1] for subs in substrLabels]}
-        return events
+        return [conds[1] for conds in condLabels],\
+                [subs[1] for subs in substrLabels]                              # return two lists with condition and substrate labels, respectively
     else:
         ### USER SAYS NO
         print("no")
