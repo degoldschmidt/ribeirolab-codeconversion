@@ -104,7 +104,7 @@ Filedialog for using existing datafile
 Tk().withdraw()                                                                 # this is for not opening a blank window GUI
 options =  {}
 options['filetypes'] = [('Matlab files', '.mat'), ('csv files', '.csv')]        # allowed save filetypes
-"""
+
 if messagebox.askyesno("Load existing datafile", \
                        "Do you want to use existing datafile?", \
                        default=messagebox.NO):                                  # File dialog: loading existing datafile
@@ -117,9 +117,7 @@ else:
     data_file, data_dir = os.path.basename(fullpath), os.path.dirname(fullpath)
     Events["ConditionLabel"], Events[ "SubstrateLabel"]\
     = set_parameters(data_dir)
-    process_data(data_dir)
-"""
-process_data(data_dir, Dur)
+    process_data(data_dir, Dur, Events)
 #print(Events)
 
 

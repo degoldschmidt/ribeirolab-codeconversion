@@ -3,94 +3,58 @@ import os
 from glob import glob
 import numpy as np
 
+nch = 64
+
+def basename(val):
+    return os.path.basename(val)
+
 def getAllFilepathsWith(dir, str):
     return [y for x in os.walk(dir) \
             for y in glob(os.path.join(x[0], '*'+str+'*')) \
             if os.path.isfile(y)]
 
 def getAllFilesWith(dir, str):
-    return [os.path.basename(y) for x in os.walk(dir) \
+    return [basename(y) for x in os.walk(dir) \
             for y in glob(os.path.join(x[0], '*'+str+'*')) \
             if os.path.isfile(y)]                                               # return basename (file) for all files y in subfolders x recursively within dir (incl. itself) that contain str and are a file
 
-def process_data(filepath, duration):
+def filled(m, val):
+    X = np.empty(m)
+    X[:] = val
+    return X
+
+def process_data(filepath, duration, events):
+    events["Condition"] = []                                                    # contains vectors with length of # channels
     for filename in getAllFilepathsWith(filepath, 'CapacitanceData'):           # for all files in filepath containing 'CapacitanceData'
+        print(filename)
         with open(filename, 'rb') as f:                                         # with opening
             cap_data = np.fromfile(f, dtype=np.ushort)                          # read binary data into numpy ndarray (1-dim.)
-            cap_data = cap_data.reshape((64,cap_data.shape[0]/64))              # reshape array into 64-dim. matrix
-            cap_data = cap_data.T                                               # take the transpose (rows = time, cols = channels)
-            print(cap_data.shape)
-            if np.isfinite(duration):
+            cap_data = (cap_data.reshape((nch, cap_data.shape[0]/nch))).T          # reshape array into 64-dim. matrix and take the transpose (rows = time, cols = channels)
+            if np.isfinite(duration) and duration < cap_data.shape[0]:
                 cap_data = cap_data[:duration,:]                                # cut off data longer than duration
-            else:                                                               # take all data
-                duration = cap_data.shape[0]                                    # duration is equal to number of rows in data
-            print(cap_data.shape)
+                this_duration = duration                                        # actual duration of experiment
+            else:
+                if duration > cap_data.shape[0]:                                # warning
+                    print("Warning: data shorter than given duration")
+                this_duration = cap_data.shape[0]                               # duration is equal to number of rows in data
+            cap_data[cap_data==-1]=0
+            events["Condition"].append(filled(nch, np.nan))                     # condition in channel matrix
+            for icond, condition in enumerate(events["ConditionLabel"]):        # check whether condition is in current file
+                condstr = "C"+"{0:02d}".format(icond+1)                         # build string for condition indicator
+                if condstr in filename:
+                    ch = []
+                    ch.append(int(filename.split(condstr,1)[1][1:3]))           # take start channel from 2nd and 3rd position after condstr
+                    ch.append(int(filename.split(condstr,1)[1][4:6]))           # take end channel from 5th and 6th position after condstr
+                    events["Condition"][-1][ch[0]-1:ch[1]] = icond              # write which condition corresponds to channel
+                    #print("Condition label:", condition,
+                    #      "from channel", ch[0],
+                    #      "to", ch[1])                                        # print condition-to-channel mapping
+            print(events["Condition"][-1])
+
 
 
 """
-    if ~isnan(Dur)
-        test=test(1:Dur,:);
-    else
-        test=test(1:end,:);
-        Dur=size(test,1);
-    end
-    test(test==-1)=0;
 
-    nChannels=size(test,2);
-
-    C(1,1)=str2double([CapFilename(strfind(CapFilename,'C01')+4) CapFilename(strfind(CapFilename,'C01')+5)]);
-    C(1,2)=str2double([CapFilename(strfind(CapFilename,'C01')+7) CapFilename(strfind(CapFilename,'C01')+8)]);
-
-    C(2,1)=str2double([CapFilename(strfind(CapFilename,'C02')+4) CapFilename(strfind(CapFilename,'C02')+5)]);
-    C(2,2)=str2double([CapFilename(strfind(CapFilename,'C02')+7) CapFilename(strfind(CapFilename,'C02')+8)]);
-
-    C(3,1)=str2double([CapFilename(strfind(CapFilename,'C03')+4) CapFilename(strfind(CapFilename,'C03')+5)]);
-    C(3,2)=str2double([CapFilename(strfind(CapFilename,'C03')+7) CapFilename(strfind(CapFilename,'C03')+8)]);
-
-    C(4,1)=str2double([CapFilename(strfind(CapFilename,'C04')+4) CapFilename(strfind(CapFilename,'C04')+5)]);
-    C(4,2)=str2double([CapFilename(strfind(CapFilename,'C04')+7) CapFilename(strfind(CapFilename,'C04')+8)]);
-
-    C(5,1)=str2double([CapFilename(strfind(CapFilename,'C05')+4) CapFilename(strfind(CapFilename,'C05')+5)]);
-    C(5,2)=str2double([CapFilename(strfind(CapFilename,'C05')+7) CapFilename(strfind(CapFilename,'C05')+8)]);
-
-    C(6,1)=str2double([CapFilename(strfind(CapFilename,'C06')+4) CapFilename(strfind(CapFilename,'C06')+5)]);
-    C(6,2)=str2double([CapFilename(strfind(CapFilename,'C06')+7) CapFilename(strfind(CapFilename,'C06')+8)]);
-
-    C(7,1)=str2double([CapFilename(strfind(CapFilename,'C07')+4) CapFilename(strfind(CapFilename,'C07')+5)]);
-    C(7,2)=str2double([CapFilename(strfind(CapFilename,'C07')+7) CapFilename(strfind(CapFilename,'C07')+8)]);
-
-    C(8,1)=str2double([CapFilename(strfind(CapFilename,'C08')+4) CapFilename(strfind(CapFilename,'C08')+5)]);
-    C(8,2)=str2double([CapFilename(strfind(CapFilename,'C08')+7) CapFilename(strfind(CapFilename,'C08')+8)]);
-
-    C(9,1)=str2double([CapFilename(strfind(CapFilename,'C09')+4) CapFilename(strfind(CapFilename,'C09')+5)]);
-    C(9,2)=str2double([CapFilename(strfind(CapFilename,'C09')+7) CapFilename(strfind(CapFilename,'C09')+8)]);
-
-    C(10,1)=str2double([CapFilename(strfind(CapFilename,'C10')+4) CapFilename(strfind(CapFilename,'C10')+5)]);
-    C(10,2)=str2double([CapFilename(strfind(CapFilename,'C10')+7) CapFilename(strfind(CapFilename,'C10')+8)]);
-
-    S=cell(numel(11:99),1);
-    C(11:99,1:2)=nan(numel(11:99),2);
-    for n = 11:99
-
-        S{n}=['C' num2str(n)];
-        C(n,1)=str2double([CapFilename(strfind(CapFilename,S{n})+4) CapFilename(strfind(CapFilename,S{n})+5)]);
-        C(n,2)=str2double([CapFilename(strfind(CapFilename,S{n})+7) CapFilename(strfind(CapFilename,S{n})+8)]);
-
-    end
-
-    Events.Condition{FileNameCounter}=nan(1,64);
-
-    %%
-
-    if strfind(CapFilename,'SCRAMBLED')>0
-        Events.Condition{FileNameCounter}(1:10)=1;
-        Events.Condition{FileNameCounter}(11:20)=2;
-        Events.Condition{FileNameCounter}(21:30)=3;
-        Events.Condition{FileNameCounter}([31 32 57:64])=4;
-        Events.Condition{FileNameCounter}([41 42 49:56])=5;
-        Events.Condition{FileNameCounter}([33:36 43:64])=6;
-
-    else
 
         for n=find(~isnan(C(:,1)))'
 
