@@ -4,10 +4,11 @@ Main script for flyPAD data analysis
 """
 
 # import packages
-import os
+import os, sys
 from tkinter import *
 from tkinter import messagebox, filedialog
 from set_parameters import cutstr, openf, set_parameters
+from process_data import process_data
 
 # metadata
 __author__                  = "Dennis Goldschmidt and Pavel Itskov"
@@ -18,6 +19,8 @@ __version__                 = "1.0"
 __maintainer__              = "Dennis Goldschmidt"
 __email__                   = "dennis.goldschmidt@neuro.fchampalimaud.org"
 __status__                  = "In development"
+pyversion = '{0}.{1}'.format(sys.version_info[0], sys.version_info[1])
+print("Running mode for Python", pyversion)
 
 ##### Fixed Parameters
 narenas                     = 32                                                # number of arenas
@@ -99,20 +102,22 @@ Filedialog for using existing datafile
 """
 Tk().withdraw()                                                                 # this is for not opening a blank window GUI
 options =  {}
-options['filetypes'] = [('Matlab files', '.mat'), ('csv files', '.csv')]        # allowed filetypes
+options['filetypes'] = [('Matlab files', '.mat'), ('csv files', '.csv')]        # allowed save filetypes
 if messagebox.askyesno("Load existing datafile", \
                        "Do you want to use existing datafile?", \
                        default=messagebox.NO):                                  # File dialog: loading existing datafile
     fullpath = filedialog.askopenfilename(title="Load datafile...", \
                                                             **options)          # only open mat files
+    data_file, data_dir = os.path.basename(fullpath), os.path.dirname(fullpath)
 else:
     fullpath = filedialog.asksaveasfilename(title="Save datafile as...", \
                                                                 **options)      # only open mat files
+    data_file, data_dir = os.path.basename(fullpath), os.path.dirname(fullpath)
     Events["ConditionLabel"], Events[ "SubstrateLabel"]\
-    = set_parameters(os.path.dirname(fullpath))
-    #ProcessDataFLYPADWithDenoisingBETADebugWithFilter
-data_file, data_dir = os.path.basename(fullpath), os.path.dirname(fullpath)
-print(Events)
+    = set_parameters(data_dir)
+    process_data(data_dir)
+
+#print(Events)
 
 
 #### PostProcessData02122016

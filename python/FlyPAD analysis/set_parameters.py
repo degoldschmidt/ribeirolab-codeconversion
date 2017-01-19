@@ -30,14 +30,20 @@ def openf(ext, filesdir):
     Parameters:
     - ext: default extension of the file  [string]
     """
-    return filedialog.askopenfile(mode='r', defaultextension=ext, title = "Choose a file.", initialdir=filesdir)
+    options =  {}
+    options['filetypes'] = [('txt files', '.txt'),
+                            ('log files', '.log'),
+                            ('dat files', '.dat')]                              # allowed load filetypes
+    return filedialog.askopenfile(mode='r', **options, defaultextension=ext, title = "Choose a file.", initialdir=filesdir)
 
 
 def set_parameters(filesdir):
     """
     Return Events.ConditionLabel and Events.SubstrateLabel as python dictionary
     """
-    if messagebox.askquestion("Load log file", "Do you want to load the log file?", default=messagebox.YES):
+    if messagebox.askyesno ("Load log file", \
+                            "Do you want to load the log file?", \
+                            default=messagebox.YES):                            # filedialog to load log file
         ### USER SAYS YES
         with openf("txt", filesdir) as f:                                       # opens file from filedialog
             lines = f.readlines()                                               # reading line by line
