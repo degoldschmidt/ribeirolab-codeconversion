@@ -13,40 +13,21 @@ def getAllFilesWith(dir, str):
             for y in glob(os.path.join(x[0], '*'+str+'*')) \
             if os.path.isfile(y)]                                               # return basename (file) for all files y in subfolders x recursively within dir (incl. itself) that contain str and are a file
 
-def process_data(filepath):
+def process_data(filepath, duration):
     for filename in getAllFilepathsWith(filepath, 'CapacitanceData'):           # for all files in filepath containing 'CapacitanceData'
-        with open(filename, 'rb') as f:
-            data = np.fromfile(f, dtype=np.ushort)                              # read binary data into numpy ndarray (1-dim.)
-            data = data.reshape((64,data.shape[0]/64))                          # reshape array into 64-dim. matrix (cols = time)
-
-
+        with open(filename, 'rb') as f:                                         # with opening
+            cap_data = np.fromfile(f, dtype=np.ushort)                          # read binary data into numpy ndarray (1-dim.)
+            cap_data = cap_data.reshape((64,cap_data.shape[0]/64))              # reshape array into 64-dim. matrix
+            cap_data = cap_data.T                                               # take the transpose (rows = time, cols = channels)
+            print(cap_data.shape)
+            if np.isfinite(duration):
+                cap_data = cap_data[:duration,:]                                # cut off data longer than duration
+            else:                                                               # take all data
+                duration = cap_data.shape[0]                                    # duration is equal to number of rows in data
+            print(cap_data.shape)
 
 
 """
-%% Don`t change anything below this point !!!!
-DatabaseOffset=0;
-currentDir=DataPathName;
-cd(currentDir)
-fileList = getAllFiles(currentDir);
-numel(currentDir)
-z=nan(size(size(fileList,1)));
-for n=1:size(fileList,1)
-
-    namez=fileList{n,1};
-    z(n)=numel(strfind(namez,'CapacitanceData'));
-
-end
-%% Manually set for quickness
-CapFilenames=fileList(logical(z));
-for FileNameCounter=1:size(CapFilenames,1)
-    CapFilename=CapFilenames{FileNameCounter,1};
-    CapFilename=CapFilename(numel(currentDir)+1:end);
-    %% Extract from the filename which channel is yeast and which is sucrose
-    fileID=fopen(CapFilename);
-    CapData=fread(fileID,'ushort');
-    CapData=reshape(CapData,64,size(CapData,1)/64);
-    test=CapData';
-
     if ~isnan(Dur)
         test=test(1:Dur,:);
     else

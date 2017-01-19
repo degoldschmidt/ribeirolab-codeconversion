@@ -21,6 +21,7 @@ __email__                   = "dennis.goldschmidt@neuro.fchampalimaud.org"
 __status__                  = "In development"
 pyversion = '{0}.{1}'.format(sys.version_info[0], sys.version_info[1])
 print("Running mode for Python", pyversion)
+data_dir = "/Users/degoldschmidt/Google Drive/PhD Project/Data/DN-TrpA1/10012017/"
 
 ##### Fixed Parameters
 narenas                     = 32                                                # number of arenas
@@ -103,6 +104,7 @@ Filedialog for using existing datafile
 Tk().withdraw()                                                                 # this is for not opening a blank window GUI
 options =  {}
 options['filetypes'] = [('Matlab files', '.mat'), ('csv files', '.csv')]        # allowed save filetypes
+"""
 if messagebox.askyesno("Load existing datafile", \
                        "Do you want to use existing datafile?", \
                        default=messagebox.NO):                                  # File dialog: loading existing datafile
@@ -116,7 +118,8 @@ else:
     Events["ConditionLabel"], Events[ "SubstrateLabel"]\
     = set_parameters(data_dir)
     process_data(data_dir)
-
+"""
+process_data(data_dir, Dur)
 #print(Events)
 
 
