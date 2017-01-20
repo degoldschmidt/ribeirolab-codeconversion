@@ -2,6 +2,7 @@ import fnmatch
 import os
 from glob import glob
 import numpy as np
+from datetime import datetime as dt
 
 nch = 64
 
@@ -18,15 +19,63 @@ def getAllFilesWith(dir, str):
             for y in glob(os.path.join(x[0], '*'+str+'*')) \
             if os.path.isfile(y)]                                               # return basename (file) for all files y in subfolders x recursively within dir (incl. itself) that contain str and are a file
 
+def get_data_channels(filename, events, remove_ch, diff_subs):
+    events["Condition"].append(filled(nch, np.nan))                             # condition in channel vector
+    events["ConditionSubstrate"].append(filled(nch, np.nan))                    # condition substrate in channel vector
+    events["Substrate"].append(filled(nch, np.nan))                             # substrate in channel vector
+    events["ToRemove"].append(np.zeros(nch))                                    # to remove in channel vector
+    for icond, condition in enumerate(events["ConditionLabel"]):                # check whether condition is in current file
+        condstr = "C"+"{0:02d}".format(icond+1)                                 # build string for condition indicator
+        if condstr in filename:
+            ##### Get Condition
+            ch = []
+            ch.append(int(filename.split(condstr,1)[1][1:3]))                   # take start channel from 2nd and 3rd position after condstr
+            ch.append(int(filename.split(condstr,1)[1][4:6]))                   # take end channel from 5th and 6th position after condstr
+            events["Condition"][-1][ch[0]-1:ch[1]] = icond                      # write which condition corresponds to channel
+            ##### Get Substrate
+            ### [FLAG]: What does this really do? What is Condition Substrate
+            if diff_subs == 1 or diff_subs == 2:
+                events["ConditionSubstrate"][-1][ch[0]-1:ch[1]:2] \
+                = 2 * icond - 1
+                events["ConditionSubstrate"][-1][ch[0]-1:ch[1]:2] \
+                = 2 * icond
+            events["Substrate"][-1][0:64:2]=1;                                  # even channels
+            if events["SubstrateLabel"][0] \
+            == events["SubstrateLabel"][1]:                                     # if both labels are the same
+                events["Substrate"][-1][1:65:2] = 0                             # uneven channels
+            else:
+                events["Substrate"][-1][1:65:2] = 1                             # uneven channels
+            ##### Get channels to remove
+            events["ToRemove"][-1][sorted(remove_ch)] = 1                       # which channels to remove
+            ### [FLAG]: find out, if and why this is needed ==> DatabaseOffset
+            #Events.ChannelsToRemove{FileNameCounter+DatabaseOffset}=ChannelsToRemove;
+            #Events.Time{FileNameCounter+DatabaseOffset,1}=time;
+    return events
+
 def filled(m, val):
     X = np.empty(m)
     X[:] = val
     return X
 
-def process_data(filepath, duration, events):
-    events["Condition"] = []                                                    # contains vectors with length of # channels
+def process_data(filepath, duration, events, remove_ch, diff_subs = 0):
+    """
+    Parameters:
+    ===========
+        filepath:
+        duration:
+        events:
+        remove_ch:
+        different_subs: (default: 0)
+    """
+    events["Condition"] = []                                                    # list of condition vectors (len=#channels) per file
+    events["ConditionSubstrate"] = []                                           # list of condition substrate vectors (len=#channels) per file
+    events["Substrate"] = []                                                    # list of substrate vectors (len=#channels) per file
+    events["ToRemove"] = []                                                     # list of "to remove" vectors (len=#channels) per file
+    events["Timestamp"] = []                                                    # list of timestamps per file
+    events["Filename"] = []                                                     # list of file names
     for filename in getAllFilepathsWith(filepath, 'CapacitanceData'):           # for all files in filepath containing 'CapacitanceData'
         print(filename)
+        events["Filename"].append(basename(filename))                           # save file name without path
         with open(filename, 'rb') as f:                                         # with opening
             cap_data = np.fromfile(f, dtype=np.ushort)                          # read binary data into numpy ndarray (1-dim.)
             cap_data = (cap_data.reshape((nch, cap_data.shape[0]/nch))).T          # reshape array into 64-dim. matrix and take the transpose (rows = time, cols = channels)
@@ -38,83 +87,33 @@ def process_data(filepath, duration, events):
                     print("Warning: data shorter than given duration")
                 this_duration = cap_data.shape[0]                               # duration is equal to number of rows in data
             cap_data[cap_data==-1]=0
-            events["Condition"].append(filled(nch, np.nan))                     # condition in channel matrix
-            for icond, condition in enumerate(events["ConditionLabel"]):        # check whether condition is in current file
-                condstr = "C"+"{0:02d}".format(icond+1)                         # build string for condition indicator
-                if condstr in filename:
-                    ch = []
-                    ch.append(int(filename.split(condstr,1)[1][1:3]))           # take start channel from 2nd and 3rd position after condstr
-                    ch.append(int(filename.split(condstr,1)[1][4:6]))           # take end channel from 5th and 6th position after condstr
-                    events["Condition"][-1][ch[0]-1:ch[1]] = icond              # write which condition corresponds to channel
-                    #print("Condition label:", condition,
-                    #      "from channel", ch[0],
-                    #      "to", ch[1])                                        # print condition-to-channel mapping
-            print(events["Condition"][-1])
+            timestamp = dt.strptime(filename[-19:], '%Y-%m-%dT%H_%S_%M')        # timestamp of file
+            events["Timestamp"].append(timestamp)                               # timestamp in channel vector
 
+            ##### Get Conditions and Substrates func
+            events = get_data_channels(filename, events, remove_ch, diff_subs)  # see func above
+    np.savez('events.npz', **events)
 
+    """
+            ##### Filtering
+            filteredTraces=nan(size(test));
+            for nnn=1:size(test,2)
+                %test(:,nnn) =wrev(FlyPAS4(wrev(FlyPAS4(test(:,nnn),20,12)),20,12)); %%Good Filter
+                test(:,nnn) = medfilt1(test(:,nnn),6);%% Median filter
+                %test(:,nnn) = FilterData(test(:,nnn));
+            end
+            c=0;
+            for i = 1:1:size(test,2)
+                disp(num2str(i))
+                Ch1=test(:,i);
+                span=50;
+                window = ones(span,1)/span;
+                filteredTraces(:,i) = convn(Ch1,window,'same');
+            end
+            RfilteredTraces=test-filteredTraces;
+    """
 
 """
-
-
-        for n=find(~isnan(C(:,1)))'
-
-            Events.Condition{FileNameCounter}(C(n,1):C(n,2))=n;
-            if (Different_Subs==1)||(Different_Subs==2)
-                Events.Condition_Substrate{FileNameCounter}(C(n,1):2:C(n,2))=2*n-1;
-                Events.Condition_Substrate{FileNameCounter}(C(n,1)+1:2:C(n,2))=2*n;
-            end
-
-
-        end
-    end
-
-
-
-
-
-
-    %%
-
-    if  strcmp(Events.SubstrateLabel{1},Events.SubstrateLabel{2})
-        Events.Substrate{FileNameCounter}(1:2:64)=1;
-        Events.Substrate{FileNameCounter}(2:2:64)=1;
-
-    else
-        Events.Substrate{FileNameCounter}(1:2:64)=1;
-        Events.Substrate{FileNameCounter}(2:2:64)=2;
-    end
-
-
-
-    ToRemove=Channels(Remove,:);
-    Events.ToRemove{FileNameCounter}=zeros(1,64);
-    Events.ToRemove{FileNameCounter}(sort(ToRemove(~isnan(ToRemove))))=1;
-    %% this code defines which channels correspond to which condition
-    Events.ChannelsToRemove{FileNameCounter+DatabaseOffset}=ChannelsToRemove;
-    Events.Date{FileNameCounter+DatabaseOffset,1}=CapFilename(strfind(CapFilename,'201'):strfind(CapFilename,'201')+9);
-    time=CapFilename(strfind(CapFilename,'201')+11:end);
-    time([3 6])=':';
-    Events.Time{FileNameCounter+DatabaseOffset,1}=time;
-    %% Filtering
-    filteredTraces=nan(size(test));
-    for nnn=1:size(test,2)
-%         test(:,nnn) =wrev(FlyPAS4(wrev(FlyPAS4(test(:,nnn),20,12)),20,12)); %%Good Filter
-        test(:,nnn) = medfilt1(test(:,nnn),6);%% Median filter
-%                test(:,nnn) = FilterData(test(:,nnn));
-
-
-    end
-
-        c=0;
-    for i = 1:1:size(test,2)
-disp(num2str(i))
-Ch1=test(:,i);
-        span=50;
-        window = ones(span,1)/span;
-        filteredTraces(:,i) = convn(Ch1,window,'same');
-    end
-    RfilteredTraces=test-filteredTraces;
-
 
     %% remove the edges
     RfilteredTraces([1:span end-span:end],:)=0;

@@ -25,7 +25,8 @@ data_dir = "/Users/degoldschmidt/Google Drive/PhD Project/Data/DN-TrpA1/10012017
 
 ##### Fixed Parameters
 narenas                     = 32                                                # number of arenas
-Remove                      = [ ]                                               # which arenas to remove for analysis
+# which arenas to remove for analysis (This is ordinal = starts with arena 1)
+Remove                      = [1 , 2 ]
 Events                      = {}                                                # Events data structure as dictionary
 Events["ThisScriptName"]    = os.getcwd()                                       # current working directory
 DatabaseOffset              = 0
@@ -85,7 +86,7 @@ Different_Subs              = 0                                                 
 
 Threshold1                  = 30000                                             # ???
 Threshold2                  = 4095                                              # ???
-channels                    = [[2*ind, 2*ind+1] for ind in range(narenas)]      # all channels by arena
+channels                    = [[2*(ind-1), 2*ind-1] for ind in range(narenas)]  # all channels by arena
 remove_ch                   = [channels[ind] for ind in Remove]                 # channels of arenas to remove
 remove_ch                   = [it for array in remove_ch for it in array]       # flattens array to 1D list
 DateOffset                  = 4
@@ -95,7 +96,7 @@ RMSThresh                   = 10
 Window                      = 100                                               # maximum duration of the sip in samples
 MinWindow                   = 4                                                 # minimum duration of the bout in samples
 EqualityFactor              = 0.5                                               # set to 50\%, meaning that the down transition should be at least 50\% the size of the up transition
-ProximityWindow             = MinWindow+3                                       # How many samples far should the transitions be
+ProximityWindow             = MinWindow + 3                                     # How many samples far should the transitions be
 RemoveBoxPlotOutliers       = 1                                                 # This has been defined globally in Matlab
 
 """
@@ -105,19 +106,21 @@ Tk().withdraw()                                                                 
 options =  {}
 options['filetypes'] = [('Matlab files', '.mat'), ('csv files', '.csv')]        # allowed save filetypes
 
-if messagebox.askyesno("Load existing datafile", \
+dialog = messagebox.askyesno("Load existing datafile", \
                        "Do you want to use existing datafile?", \
-                       default=messagebox.NO):                                  # File dialog: loading existing datafile
+                       default=messagebox.NO)                                   # File dialog: loading existing datafile
+if dialog:                                                                      # Case: YES
     fullpath = filedialog.askopenfilename(title="Load datafile...", \
                                                             **options)          # only open mat files
     data_file, data_dir = os.path.basename(fullpath), os.path.dirname(fullpath)
-else:
+else:                                                                           # Case: NO
     fullpath = filedialog.asksaveasfilename(title="Save datafile as...", \
                                                                 **options)      # only open mat files
     data_file, data_dir = os.path.basename(fullpath), os.path.dirname(fullpath)
     Events["ConditionLabel"], Events[ "SubstrateLabel"]\
     = set_parameters(data_dir)
-    process_data(data_dir, Dur, Events)
+
+    process_data(data_dir, Dur, Events, remove_ch, diff_subs=Different_Subs)    # processes the capacitance data
 #print(Events)
 
 

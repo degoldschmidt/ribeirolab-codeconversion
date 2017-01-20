@@ -87,3 +87,7 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+python/FlyPAD analysis/events.npy
+
+python/FlyPAD analysis/events.npz
