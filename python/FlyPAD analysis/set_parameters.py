@@ -24,7 +24,7 @@ def cutstr(s, between):
 
 
 
-def openf(ext, filesdir):
+def openf(ext, filesdir, DEBUG):
     """
     Return an opened file in read mode.
     Parameters:
@@ -34,18 +34,24 @@ def openf(ext, filesdir):
     options['filetypes'] = [('txt files', '.txt'),
                             ('log files', '.log'),
                             ('dat files', '.dat')]                              # allowed load filetypes
-    return filedialog.askopenfile(mode='r', **options, defaultextension=ext, title = "Choose a file.", initialdir=filesdir)
+    if DEBUG:
+        return open("/Users/degoldschmidt/Google Drive/PhD Project/Data/DN-TrpA1/10012017/10012017.txt", 'r')
+    else:
+        return filedialog.askopenfile(mode='r', **options, defaultextension=ext, title = "Choose a file.", initialdir=filesdir)
 
 
-def set_parameters(filesdir):
+def set_parameters(filesdir, DEBUG):
     """
     Return Events.ConditionLabel and Events.SubstrateLabel as python dictionary
     """
-    if messagebox.askyesno ("Load log file", \
-                            "Do you want to load the log file?", \
-                            default=messagebox.YES):                            # filedialog to load log file
+    if DEBUG:
+        """
+        if messagebox.askyesno ("Load log file", \
+                                "Do you want to load the log file?", \
+                                default=messagebox.YES):                            # filedialog to load log file
+        """
         ### USER SAYS YES
-        with openf("txt", filesdir) as f:                                       # opens file from filedialog
+        with openf("txt", filesdir, DEBUG) as f:                                       # opens file from filedialog
             lines = f.readlines()                                               # reading line by line
             condLabels = []                                                     # temp. list for condition labels
             substrLabels = []                                                   # temp. list for substrate labels
@@ -59,10 +65,10 @@ def set_parameters(filesdir):
             substrLabels.sort(key=lambda x: x[0])
         return [conds[1] for conds in condLabels],\
                 [subs[1] for subs in substrLabels]                              # return two lists with condition and substrate labels, respectively
-    else:
+    #else:
         ### USER SAYS NO
-        print("no")
-        print("using default values instead")
+    #    print("no")
+    #    print("using default values instead")
 
 """
 This is a unit test function

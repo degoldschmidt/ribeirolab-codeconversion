@@ -19,6 +19,13 @@ __version__                 = "1.0"
 __maintainer__              = "Dennis Goldschmidt"
 __email__                   = "dennis.goldschmidt@neuro.fchampalimaud.org"
 __status__                  = "In development"
+
+def askfd():
+    return messagebox.askyesno("Load existing datafile", \
+                               "Do you want to use existing datafile?", \
+                               default=messagebox.NO)                           # File dialog: loading existing datafile
+
+DEBUG = True
 pyversion = '{0}.{1}'.format(sys.version_info[0], sys.version_info[1])
 print("Running mode for Python", pyversion)
 data_dir = "/Users/degoldschmidt/Google Drive/PhD Project/Data/DN-TrpA1/10012017/"
@@ -30,11 +37,12 @@ Remove                      = [1 , 2 ]
 Events                      = {}                                                # Events data structure as dictionary
 Events["ThisScriptName"]    = os.getcwd()                                       # current working directory
 DatabaseOffset              = 0
+Parameters                  = {}                                                # TODO: put parameters into dict
 
 ##### Settings
 removeDrift                 = True
 BonsaiStyleActivityBouts    = False
-Dur                         = 360000                                            # duration of experiment
+Parameters["Duration"]      = 350000                                            # duration of experiment (360000 = 1 hour)
 TimeWindow                  = 60000                                             # Time bin for the timecourse analysis in samples
 
 """
@@ -82,17 +90,17 @@ conditions you have).
 Example: if you have 6 conditions, this cell should have 6 rows.
 Even if that implies that 3 of them are repeated.
 """
-Different_Subs              = 0                                                 # Default is 0 (No comparison between channels).
+Parameters["different_subs"]= 0                                                 # Default is 0 (No comparison between channels).
 
 Threshold1                  = 30000                                             # ???
 Threshold2                  = 4095                                              # ???
 channels                    = [[2*(ind-1), 2*ind-1] for ind in range(narenas)]  # all channels by arena
 remove_ch                   = [channels[ind] for ind in Remove]                 # channels of arenas to remove
-remove_ch                   = [it for array in remove_ch for it in array]       # flattens array to 1D list
+Parameters["remove_ch"]     = [it for array in remove_ch for it in array]       # flattens array to 1D list
 DateOffset                  = 4
-RMSWindow                   = 50
+Parameters["RMSWindow"]     = 50                                                # window size for root-mean-square
 PlayFrameRate               = 10
-RMSThresh                   = 10
+Parameters["RMSThresh"]     = 10                                                # RMS threshold for bout detection
 Window                      = 100                                               # maximum duration of the sip in samples
 MinWindow                   = 4                                                 # minimum duration of the bout in samples
 EqualityFactor              = 0.5                                               # set to 50\%, meaning that the down transition should be at least 50\% the size of the up transition
@@ -102,25 +110,29 @@ RemoveBoxPlotOutliers       = 1                                                 
 """
 Filedialog for using existing datafile
 """
-Tk().withdraw()                                                                 # this is for not opening a blank window GUI
+#Tk().withdraw()                                                                 # this is for not opening a blank window GUI
 options =  {}
 options['filetypes'] = [('Matlab files', '.mat'), ('csv files', '.csv')]        # allowed save filetypes
 
-dialog = messagebox.askyesno("Load existing datafile", \
-                       "Do you want to use existing datafile?", \
-                       default=messagebox.NO)                                   # File dialog: loading existing datafile
+if not DEBUG:
+    dialog = askfd()                                                            # opens filedialog
+else:
+    dialog = False
 if dialog:                                                                      # Case: YES
     fullpath = filedialog.askopenfilename(title="Load datafile...", \
                                                             **options)          # only open mat files
     data_file, data_dir = os.path.basename(fullpath), os.path.dirname(fullpath)
 else:                                                                           # Case: NO
-    fullpath = filedialog.asksaveasfilename(title="Save datafile as...", \
+    if not DEBUG:
+        fullpath = filedialog.asksaveasfilename(title="Save datafile as...", \
                                                                 **options)      # only open mat files
+    else:
+        fullpath = "/Users/degoldschmidt/Google Drive/PhD Project/Data/DN-TrpA1/10012017/untitled.mat"
     data_file, data_dir = os.path.basename(fullpath), os.path.dirname(fullpath)
     Events["ConditionLabel"], Events[ "SubstrateLabel"]\
-    = set_parameters(data_dir)
+    = set_parameters(data_dir, DEBUG)
 
-    process_data(data_dir, Dur, Events, remove_ch, diff_subs=Different_Subs)    # processes the capacitance data
+    process_data(data_dir, Events, Parameters)                                  # processes the capacitance data
 #print(Events)
 
 

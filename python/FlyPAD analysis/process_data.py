@@ -3,6 +3,11 @@ import os
 from glob import glob
 import numpy as np
 from datetime import datetime as dt
+import scipy as sp
+from scipy import signal
+from fastrms import fastrms
+
+import matplotlib.pyplot as plt
 
 nch = 64
 
@@ -57,7 +62,7 @@ def filled(m, val):
     X[:] = val
     return X
 
-def process_data(filepath, duration, events, remove_ch, diff_subs = 0):
+def process_data(filepath, events, parameters):
     """
     Parameters:
     ===========
@@ -67,18 +72,27 @@ def process_data(filepath, duration, events, remove_ch, diff_subs = 0):
         remove_ch:
         different_subs: (default: 0)
     """
-    events["Condition"] = []                                                    # list of condition vectors (len=#channels) per file
+    duration       = parameters["Duration"]                                     # duration to analyze
+    print(duration)
+    remove_ch      = parameters["remove_ch"]                                    # channels to remove
+    diff_subs      = parameters["different_subs"]                               # Default is 0 (No comparison between channels).
+    RMSThresh      = parameters["RMSThresh"]                                    # RMS threshold for bout detection
+    RMSWindow      = parameters["RMSWindow"]                                    # window size for root-mean-square
+    events["Condition"] = []                                                    # list of condition vectors (len=#channels) per file            TODO: make this a class type
     events["ConditionSubstrate"] = []                                           # list of condition substrate vectors (len=#channels) per file
     events["Substrate"] = []                                                    # list of substrate vectors (len=#channels) per file
     events["ToRemove"] = []                                                     # list of "to remove" vectors (len=#channels) per file
     events["Timestamp"] = []                                                    # list of timestamps per file
     events["Filename"] = []                                                     # list of file names
+
     for filename in getAllFilepathsWith(filepath, 'CapacitanceData'):           # for all files in filepath containing 'CapacitanceData'
-        print(filename)
+        print(basename(filename))
         events["Filename"].append(basename(filename))                           # save file name without path
+
         with open(filename, 'rb') as f:                                         # with opening
             cap_data = np.fromfile(f, dtype=np.ushort)                          # read binary data into numpy ndarray (1-dim.)
-            cap_data = (cap_data.reshape((nch, cap_data.shape[0]/nch))).T          # reshape array into 64-dim. matrix and take the transpose (rows = time, cols = channels)
+            rows = cap_data.shape[0]                                            # to shorten next line
+            cap_data = (cap_data.reshape(nch, rows/nch,order='F').copy()).T     # reshape array into 64-dim. matrix and take the transpose (rows = time, cols = channels)
             if np.isfinite(duration) and duration < cap_data.shape[0]:
                 cap_data = cap_data[:duration,:]                                # cut off data longer than duration
                 this_duration = duration                                        # actual duration of experiment
@@ -92,52 +106,56 @@ def process_data(filepath, duration, events, remove_ch, diff_subs = 0):
 
             ##### Get Conditions and Substrates func
             events = get_data_channels(filename, events, remove_ch, diff_subs)  # see func above
-    np.savez('events.npz', **events)
 
-    """
             ##### Filtering
-            filteredTraces=nan(size(test));
-            for nnn=1:size(test,2)
-                %test(:,nnn) =wrev(FlyPAS4(wrev(FlyPAS4(test(:,nnn),20,12)),20,12)); %%Good Filter
-                test(:,nnn) = medfilt1(test(:,nnn),6);%% Median filter
-                %test(:,nnn) = FilterData(test(:,nnn));
-            end
-            c=0;
-            for i = 1:1:size(test,2)
-                disp(num2str(i))
-                Ch1=test(:,i);
-                span=50;
-                window = ones(span,1)/span;
-                filteredTraces(:,i) = convn(Ch1,window,'same');
-            end
-            RfilteredTraces=test-filteredTraces;
-    """
+            filtered_traces=np.full(cap_data.shape, np.nan);
+            krnlsz = 7                                                          # kernel size of the applied filter TODO: = 6
+            for ind in range(cap_data.shape[1]):                                # for each channel
+                cap_data[:, ind] = sp.signal.medfilt(cap_data[:, ind], krnlsz)  # apply median filter from scipy
+            c=0
+            for ind in range(cap_data.shape[1]):                                # for each channel
+                #print(ind)                                                     # print out which channel is currently filtered (TODO: progress bar)
+                this_ch = cap_data[:, ind]                                      # current channel capacitance data time series
+                ### defining a window for additional convolution of signal
+                span = 50                                                       # span of convolving window
+                window = np.ones(span) / span                                   # uniform window
+                filtered_traces[:, ind] = np.convolve(this_ch, window, 'same')  # convolving time series with window
+            delta_filt = cap_data - filtered_traces                             # difference between filtered capacitance data and additionally convolved traces
+
+            ### remove the edges
+            delta_filt[:span+1,:] = delta_filt[-span:,:] = 0
+            cap_data[:span+1,:]   = cap_data[-span:,:]   = 0
+
+            ### get the root-mean-square power of the signal
+            cap_data_RMS = fastrms(delta_filt, RMSWindow, 1, 0)
+            ### use Quiroga`s method to find the RMS threshold
+
+
+            # Find positive events
+            RMSThrEvents = np.zeros(cap_data_RMS.shape)
+            for ind in range(cap_data_RMS.shape[1]):
+                RMSThrEvents[:, ind] = cap_data_RMS[:, ind] > RMSThresh         # Array of timesteps when capacitance RMS is above threshold
+            dRMSThrEvents = np.diff(RMSThrEvents, axis=0)
+            PosEvents = np.zeros(dRMSThrEvents.shape)
+            NegEvents = np.zeros(dRMSThrEvents.shape)
+            #for ind in range(cap_data.shape[1]):
+            #    plt.plot(RMSThrEvents[:, ind], 'b-')
+            #plt.show()
+            eventsInd, indPosEvents, indNegEvents, distEvents = [],[],[],[]     # empty lists
+            for ind in range(RMSThrEvents.shape[1]):
+                eventsInd.append( np.nonzero(RMSThrEvents[:, ind])[0] )         # indices of RMS events above Threshold
+                PosEvents[:, ind] = dRMSThrEvents[:, ind] > 0                   # positive changes (event)
+                NegEvents[:, ind] = dRMSThrEvents[:, ind] < 0                   # negative changes (event)
+                indPosEvents.append( np.nonzero(PosEvents[:, ind])[0] )         # index of positive event
+                indNegEvents.append( np.nonzero(NegEvents[:, ind])[0] )         # index of negative event
+                #print(indNegEvents[-1], indPosEvents[-1])
+                distEvents.append( indNegEvents[-1] - indPosEvents[-1] )        # length from negative to positive event
+            #break                                                               # break after one file [DEBUGGGGG]
+
+    #np.savez('events.npz', **events)
+
 
 """
-
-    %% remove the edges
-    RfilteredTraces([1:span end-span:end],:)=0;
-    test([1:span end-span:end],:)=0;
-    %% get the RMS
-    testRMS= fastrms(RfilteredTraces,RMSWindow,1,0);
-     %% use Quiroga`s method to find the RMS threshold
-    clear RMSthrPos RMSPosEvents  F_RMS PosDiffFoundEvents NegDiffFoundEvents IndRMSDiffFoundEvents FoundEvents TrueRMSEvents
-
-    for n=1:size(testRMS,2);
-        F_RMS=testRMS(:,n);
-        RMSPosEvents(1:size(testRMS,1),n)=F_RMS>RMSThresh;
-    end
-
-    for n=1:size(RMSPosEvents,2)
-
-        FoundEvents{1,n}=find(RMSPosEvents(:,n));
-        PosDiffFoundEvents(:,n)=diff(RMSPosEvents(:,n))>0;
-        NegDiffFoundEvents(:,n)=diff(RMSPosEvents(:,n))<0;
-        IndRMSDiffFoundEvents{1,n}=find(PosDiffFoundEvents(:,n));
-        IndRMSDiffFoundEvents{2,n}=find(NegDiffFoundEvents(:,n));
-        IndRMSDiffFoundEvents{3,n}=IndRMSDiffFoundEvents{2,n}-IndRMSDiffFoundEvents{1,n};
-    end
-
     %%
     RRfilteredTraces=RfilteredTraces(2:end,:);
     FDerivative=diff(RfilteredTraces);
@@ -154,34 +172,10 @@ def process_data(filepath, duration, events, remove_ch, diff_subs = 0):
         FDerivativeNeg=FDerivative(:,n);
         c=1;
         Count=0;
-
-
                   ConstThresPOS=max(diff(IBIS(:,n)));
                   ConstThresNEG=min(diff(IBIS(:,n)));
                 PosEvents(n,:)=FDerivative(:,n)>ConstThresPOS;
                  NegEvents(n,:)=FDerivative(:,n)<ConstThresNEG;
-
-%         for m=1:Window_For_Threshold:size(FDerivative,1)-Window_For_Threshold
-%             c=c+Window_For_Threshold;
-%             Count=Count+1;
-%             Fpos=FDerivativePos(m:c);
-%             Fneg=FDerivativeNeg(m:c);
-%             thrPos{n,Count}=4.*median(Fpos(Fpos>1))./0.6745;
-%             thrNeg{n,Count}=4.*median(Fneg(Fneg<-1))./0.6745;
-%
-%             if ConstThresPOS<thrPos{n,Count}
-%                 PosEvents(n,m:c)=FDerivative(m:c,n)>thrPos{n,Count};
-%             else
-%                 PosEvents(n,m:c)=FDerivative(m:c,n)>ConstThresPOS;
-%             end
-%
-%             if ConstThresNEG>thrNeg{n,Count}
-%                 NegEvents(n,m:c)=FDerivative(m:c,n)<thrNeg{n,Count};
-%             else
-%                 NegEvents(n,m:c)=FDerivative(m:c,n)<ConstThresNEG;
-%             end
-%         end
-%
 
     end
 
@@ -330,16 +324,7 @@ def process_data(filepath, duration, events, remove_ch, diff_subs = 0):
                 Events.Offs{FileNameCounter+DatabaseOffset,nChannels}= indNeg;
                 Events.Durations{FileNameCounter+DatabaseOffset,nChannels}= EventDuration;
                 Events.IFI{FileNameCounter+DatabaseOffset,nChannels}= indPos(2:end)-indNeg(1:end-1);
-
             else
-                %                     indNeg=0;
-                %                     indPos=0;
-                %                     EventDuration=0;
-                %                     Events.Ons{FileNameCounter+DatabaseOffset,nChannels}= indPos;
-                %                     Events.Offs{FileNameCounter+DatabaseOffset,nChannels}= indNeg;
-                %                     Events.Durations{FileNameCounter+DatabaseOffset,nChannels}= EventDuration;
-                %                     Events.IFI{FileNameCounter+DatabaseOffset,nChannels}= indPos(2:end)-indNeg(1:end-1);
-
                 indNeg=0;
                 indPos=0;
                 EventDuration=0;
@@ -350,20 +335,7 @@ def process_data(filepath, duration, events, remove_ch, diff_subs = 0):
 
             end
 
-
-
-
         else
-
-            %                 indNeg=0;
-            %                 indPos=0;
-            %                 EventDuration=0;
-            %                 Events.Ons{FileNameCounter+DatabaseOffset,nChannels}= indPos;
-            %                 Events.Offs{FileNameCounter+DatabaseOffset,nChannels}= indNeg;
-            %                 Events.Durations{FileNameCounter+DatabaseOffset,nChannels}= EventDuration;
-            %                 Events.IFI{FileNameCounter+DatabaseOffset,nChannels}= indPos(2:end)-indNeg(1:end-1);
-
-
             indNeg=0;
             indPos=0;
             EventDuration=0;
@@ -375,12 +347,6 @@ def process_data(filepath, duration, events, remove_ch, diff_subs = 0):
         end
 
     end
-
-% figure
-% plot(RfilteredTraces(:,3));hold all;plot(Events.Ons{3},RfilteredTraces(Events.Ons{3},3),'^r','MarkerSize',2)     %% keep only RMS events which have at least 1 feeding event inside (to remove false events due to signal drift)
-%
-% figure
-% plot(test(:,3));hold all;plot(Events.Ons{3},test(Events.Ons{3},3),'^r','MarkerSize',2)     %% keep only RMS events which have at least 1 feeding event inside (to remove false events due to signal drift)
 
 if removeDrift
         nRMSEvents=cell(1,size(IndRMSDiffFoundEvents,2));
@@ -459,19 +425,6 @@ if removeDrift
     for i=1:size(Events.RMSEventsOns,2)
         numelements=numel(Events.RMSEventsOns{FileNameCounter+DatabaseOffset,i});
         Events.SpillQuality{FileNameCounter+DatabaseOffset,i}=(sum(test(:,i)>=4095))./size(test,1);
-%         if numelements>0
-%
-%             for fig=1:numelements
-%
-%                 on=Events.RMSEventsOns{FileNameCounter+DatabaseOffset,i}(fig);
-%
-%                 if on+(secRecording*100)<Dur
-%                     Events.RawDataOnActBouts{FileNameCounter+DatabaseOffset,i}(fig,:)=CapData(i,on:on+(secRecording*100));
-%                 end
-%
-%
-%             end
-%         end
     end
 
     if MergeChannels==1
@@ -482,34 +435,6 @@ if removeDrift
         end
     end
     %% SIP FORMS
-
-%     Events.SipForms{FileNameCounter+DatabaseOffset,64}=[];
-%
-%     WindowSip= Window+PreSipForm+PostSipForm;
-%
-%     for i=1:size(Events.Ons,2)
-%         numelements=numel(Events.Ons{FileNameCounter+DatabaseOffset,i});
-%         if numelements>0
-%             for n=1:numelements
-%
-%                 if Events.Ons{FileNameCounter+DatabaseOffset,i}(n)>0
-%                     on=Events.Ons{FileNameCounter+DatabaseOffset,i}(n);
-%                     off=Events.Offs{FileNameCounter+DatabaseOffset,i}(n);
-%                 else
-%                     break
-%                 end
-%
-%                 SipFormsVector=NaN(WindowSip+1,1);
-%                 try
-%                     SipFormsVector(1:PreSipForm+1+off+PostSipForm-on)=test(on-PreSipForm:off+PostSipForm,i);
-%                 catch
-%                     SipFormsVector(1:PreSipForm+1+off-on)=test(on-PreSipForm:off,i);
-%                 end
-%
-%                 Events.SipForms{FileNameCounter+DatabaseOffset,i}(n,:)=SipFormsVector';
-%             end
-%         end
-%     end
 
 end
 
