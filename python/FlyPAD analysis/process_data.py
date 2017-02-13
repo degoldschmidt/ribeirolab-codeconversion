@@ -136,73 +136,64 @@ def process_data(filepath, events, parameters):
             for ind in range(cap_data_RMS.shape[1]):
                 RMSThrEvents[:, ind] = cap_data_RMS[:, ind] > RMSThresh         # Array of timesteps when capacitance RMS is above threshold
             dRMSThrEvents = np.diff(RMSThrEvents, axis=0)
-            PosEvents = np.zeros(dRMSThrEvents.shape)
-            NegEvents = np.zeros(dRMSThrEvents.shape)
+            RMSPosEvents = np.zeros(dRMSThrEvents.shape)
+            RMSNegEvents = np.zeros(dRMSThrEvents.shape)
             #for ind in range(cap_data.shape[1]):
             #    plt.plot(RMSThrEvents[:, ind], 'b-')
             #plt.show()
             eventsInd, indPosEvents, indNegEvents, distEvents = [],[],[],[]     # empty lists
             for ind in range(RMSThrEvents.shape[1]):
                 eventsInd.append( np.nonzero(RMSThrEvents[:, ind])[0] )         # indices of RMS events above Threshold
-                PosEvents[:, ind] = dRMSThrEvents[:, ind] > 0                   # positive changes (event)
-                NegEvents[:, ind] = dRMSThrEvents[:, ind] < 0                   # negative changes (event)
-                indPosEvents.append( np.nonzero(PosEvents[:, ind])[0] )         # index of positive event
-                indNegEvents.append( np.nonzero(NegEvents[:, ind])[0] )         # index of negative event
-                #print(indNegEvents[-1], indPosEvents[-1])
+                RMSPosEvents[:, ind] = dRMSThrEvents[:, ind] > 0                # positive changes (event)
+                RMSNegEvents[:, ind] = dRMSThrEvents[:, ind] < 0                # negative changes (event)
+                indPosEvents.append( np.nonzero(RMSPosEvents[:, ind])[0] )      # index of positive event
+                indNegEvents.append( np.nonzero(RMSNegEvents[:, ind])[0] )      # index of negative event
                 distEvents.append( indNegEvents[-1] - indPosEvents[-1] )        # length from negative to positive event
-            #break                                                               # break after one file [DEBUGGGGG]
 
-    #np.savez('events.npz', **events)
+            FDerivative = np.diff(delta_filt)                                   # derivative of delta_filt
+            ## use Quiroga`s method to find the signal
+            #clear thrPos thrNeg PosEvents NegEvents
+            notRMSPos = np.zeros_like(delta_filt)                               # needs to be same shape as delta_filt (pad zeros before)
+            notRMSPos[1:notRMSPos.shape[0]+1,:notRMSPos.shape[1]] \
+                                = np.logical_not(RMSPosEvents).astype(int)      # this fills all rows after the first one with the logical not of RMSPosEvents
+            IBIS = delta_filt * notRMSPos
 
-
-"""
-    %%
-    RRfilteredTraces=RfilteredTraces(2:end,:);
-    FDerivative=diff(RfilteredTraces);
-    %% use Quiroga`s method to find the signal
-    clear thrPos thrNeg PosEvents NegEvents
-
-
-    IBIS=RfilteredTraces.*(~RMSPosEvents);
-    %% Dyn Thresh
-    Window_For_Threshold=300;
-    for n=1:size(FDerivative,2);
-
-        FDerivativePos=FDerivative(:,n);
-        FDerivativeNeg=FDerivative(:,n);
-        c=1;
-        Count=0;
-                  ConstThresPOS=max(diff(IBIS(:,n)));
-                  ConstThresNEG=min(diff(IBIS(:,n)));
+            ## const threshold
+            for ind in range(FDerivative.shape[1]):
+                FDerivativePos=FDerivative[:,n]
+                FDerivativeNeg=FDerivative(:,n);
+                c=1;
+                Count=0;
+                ConstThresPOS=max(diff(IBIS(:,n)));
+                ConstThresNEG=min(diff(IBIS(:,n)));
                 PosEvents(n,:)=FDerivative(:,n)>ConstThresPOS;
-                 NegEvents(n,:)=FDerivative(:,n)<ConstThresNEG;
+                NegEvents(n,:)=FDerivative(:,n)<ConstThresNEG;
+            break                                                               # break after one file [DEBUGGGGG]
+            """
+            ##
 
-    end
 
-    %%
-    RRfilteredTraces=RfilteredTraces(2:end,:);
-    TimeStamps=(1:size(RRfilteredTraces,1))./100;
+            ##
+            TimeStamps=(1:size(RRfilteredTraces,1))./100;
 
-    %% Assign zeros to all signals that are not defined as events
-    FFDerivative=zeros(size(FDerivative));
-    derivativeForFigure=FDerivative;
+            ## Assign zeros to all signals that are not defined as events
+            FFDerivative=zeros(size(FDerivative));
+            derivativeForFigure=FDerivative;
 
-    clear NE PE
-    for n=1:size(NegEvents,1)
+            clear NE PE
+            for n=1:size(NegEvents,1)
+                NE=logical(NegEvents(n,:))';
+                PE=logical(PosEvents(n,:))';
+                FunDerivative=FDerivative(:,n);
+                FuckingDerivative=FDerivative(:,n);
+                FunDerivative(:,:)=0;
+                FunDerivative(NE)=FuckingDerivative(NE);
+                FunDerivative(PE)=FuckingDerivative(PE);
+                FFDerivative(:,n)=FunDerivative;
 
-        NE=logical(NegEvents(n,:))';
-        PE=logical(PosEvents(n,:))';
-        FunDerivative=FDerivative(:,n);
-        FuckingDerivative=FDerivative(:,n);
-        FunDerivative(:,:)=0;
-        FunDerivative(NE)=FuckingDerivative(NE);
-        FunDerivative(PE)=FuckingDerivative(PE);
-        FFDerivative(:,n)=FunDerivative;
-    end
-
-    FDerivative=FFDerivative;
-    ChosenOnes=false(size(NegEvents));
-    ChosenOnes=ChosenOnes';
+            FDerivative=FFDerivative;
+            ChosenOnes=false(size(NegEvents));
+            ChosenOnes=ChosenOnes';
 
     for nChanels=1:size(RRfilteredTraces,2)
         if sum(abs(FDerivative(:,nChanels)))>10
@@ -237,6 +228,13 @@ def process_data(filepath, events, parameters):
     TimeStamps=TimeStamps(:,1:max(size(PosEvents)));
     test=test(1:max(size(PosEvents)),:);
 
+
+            #
+
+    #np.savez('events.npz', **events)
+
+"""
+"""
     %% LOAD TimeStamps of Digital Ons(LEDs) and Catch Trials
     %         importAllOptoPadData_phototransistor
     %             importAllOptoPadData
