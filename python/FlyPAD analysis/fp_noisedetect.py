@@ -29,6 +29,7 @@ from vispy import plot as vp
 import scipy as sp
 import scipy.signal as sg
 from scipy.signal import hilbert
+from string import Template
 
 # metadata
 __author__                  = "Dennis Goldschmidt"
@@ -100,14 +101,20 @@ def get_median_filtered(signal, threshold=3):
     signal[mask] = np.median(signal)
     return signal
 
-def main(argv):
-    START = 0
-    STOP  = 64
-    STEP  = 2
-    
-    # colors for plotting
-    colz = ["#C900E5", "#C603E1", "#C306DD", "#C009DA", "#BD0CD6", "#BA0FD2", "#B812CF", "#B515CB", "#B218C7", "#AF1BC4", "#AC1EC0", "#A921BD", "#A724B9", "#A427B5", "#A12AB2", "#9E2DAE", "#9B30AA", "#9833A7", "#9636A3", "#93399F", "#903C9C", "#8D3F98", "#8A4295", "#884591", "#85488D", "#824B8A", "#7F4E86", "#7C5182", "#79547F", "#77577B", "#745A77", "#715D74", "#6E6170", "#6B646D", "#686769", "#666A65", "#636D62", "#60705E", "#5D735A", "#5A7657", "#577953", "#557C4F", "#527F4C", "#4F8248", "#4C8545", "#498841", "#478B3D", "#448E3A", "#419136", "#3E9432", "#3B972F", "#389A2B", "#369D27", "#33A024", "#30A320", "#2DA61D", "#2AA919", "#27AC15", "#25AF12", "#22B20E", "#1FB50A", "#1CB807", "#19BB03", "#17BF00"]
+class DeltaTemplate(Template):
+    delimiter = "%"
 
+def strfdelta(tdelta, fmt):
+    d = {"D": tdelta.days}
+    hours, rem = divmod(tdelta.seconds, 3600)
+    minutes, seconds = divmod(rem, 60)
+    d["H"] = '{:02d}'.format(hours)
+    d["M"] = '{:02d}'.format(minutes)
+    d["S"] = '{:2.3f}'.format(seconds + tdelta.microseconds/1000000)
+    t = DeltaTemplate(fmt)
+    return t.substitute(**d)
+
+def main(argv):
     # go through list of arguments and check for existing files and dirs
     files = arg2files(argv)
 
@@ -119,52 +126,36 @@ def main(argv):
     fs = 100.
     N = 360000
     t = np.arange(N)/float(fs)
-    figs = []
+    START = 0
+    STOP  = 64
+    STEP  = 2
     
     for ind, _file in enumerate(files):
         print(_file)
-        figs.append(vp.Fig(size=(1600, 1000), show=False))
-        fig = figs[-1]
-        plt_even = fig[0, 0]
-        plt_odd = fig[1, 0]
-        plt_even._configure_2d()
-        plt_odd._configure_2d()
-        plt_even.xlabel.text = 'Time (s)'
-        plt_odd.xlabel.text = 'Time (s)'
-        plt_even.title.text = os.path.basename(_file) + " even CH"
-        plt_odd.title.text = os.path.basename(_file) + " odd CH"
         this_data = get_data(_file)
-        diff_data = np.zeros(t.shape)
+        filtered_signal = np.zeros(this_data.shape)
         sum_signal = np.zeros(t.shape)
         thr = 200
         for ch in range(START, STOP, STEP):
-            if ch%16==0:
-                print(ch)
+            #print(ch)
             """ This one does the magic """
-            filtered_signal = sg.medfilt(this_data[ch+1], kernel_size=501)
-            filtered_signal = np.abs(filtered_signal-filtered_signal[0]) # positive changes from baseline
-            thr_signal = filtered_signal > thr
-            sum_signal += thr_signal
-            
-            plt_even.plot(np.array((t, this_data[ch]+1000*ch)).T, marker_size=0, color=colz[ch])
-            #plt_even.plot(np.array((t[thr_signal==1], 1000*thr_signal[thr_signal==1])).T, marker_size=0, color='r')
-            #plt_odd.plot(np.array((t, this_data[ch+1]+1000*ch)).T, marker_size=0, color=colz[ch])
-            #plt_odd.spectrogram(this_data[ch], fs=fs)
-            plt_odd.plot(np.array((t, this_data[ch+1]+1000*ch)).T, marker_size=0, color=colz[ch])
+            filtered_signal[ch+1] = sg.medfilt(this_data[ch+1], kernel_size=501)
+            filtered_signal[ch+1] -= filtered_signal[ch+1, 0]   # baseline subtraction
+        filtered_signal = np.abs(filtered_signal) # positive changes from baseline
+        thr_signal = filtered_signal > thr
+        sum_signal = np.sum(thr_signal, axis=0)
+        
         thr_sum_signal = sum_signal > 16
         if(np.count_nonzero(thr_sum_signal) > 100):
             print("Noise detected at", (np.nonzero(thr_sum_signal)[0])[0]/fs , "secs")
         else:
             print("No noise detected.")
 
-        #plt_even.plot(np.array((t, (1000/32)*sum_signal)).T, marker_size=0, width=1, color='b')
-        plt_even.plot(np.array((t, (1000)*thr_sum_signal-1000)).T, marker_size=0, width=2, color='r')
-        plt_odd.plot(np.array((t, (1000)*thr_sum_signal-1000)).T, marker_size=0, width=2, color='r')
-    for fig in figs:
-        fig.show(run=True)
     # if no files are given
     if len(files) == 0:
         print("WARNING: No valid files specified.")
 
 if __name__ == "__main__":
+    startdt = dt.now()
     main(sys.argv[1:])
+    print("Done. Runtime:", strfdelta(dt.now() - startdt, "%H:%M:%S")) 
