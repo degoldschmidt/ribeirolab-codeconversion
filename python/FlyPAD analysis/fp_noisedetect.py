@@ -30,6 +30,7 @@ import scipy as sp
 import scipy.signal as sg
 from scipy.signal import hilbert
 from string import Template
+from itertools import groupby
 
 # metadata
 __author__                  = "Dennis Goldschmidt"
@@ -52,6 +53,11 @@ def arg2files(_args):
                     files.append(arg+_file)
     return files
 
+def len_iter(items):
+    return sum(1 for _ in items)
+
+def consecutive_one(data):
+    return max(len_iter(run) for val, run in groupby(data) if val)
 
 def get_data(_file, dur=360000, nch=64):
     with open(_file, 'rb') as f:                                                # with opening
@@ -110,7 +116,7 @@ def strfdelta(tdelta, fmt):
     minutes, seconds = divmod(rem, 60)
     d["H"] = '{:02d}'.format(hours)
     d["M"] = '{:02d}'.format(minutes)
-    d["S"] = '{:2.3f}'.format(seconds + tdelta.microseconds/1000000)
+    d["S"] = '{:05.3f}'.format(seconds + tdelta.microseconds/1000000)
     t = DeltaTemplate(fmt)
     return t.substitute(**d)
 
@@ -139,15 +145,22 @@ def main(argv):
         for ch in range(START, STOP, STEP):
             #print(ch)
             """ This one does the magic """
-            filtered_signal[ch+1] = sg.medfilt(this_data[ch+1], kernel_size=501)
+            ksize = 21##501
+            filtered_signal[ch+1] = sg.medfilt(this_data[ch+1], kernel_size=ksize)
             filtered_signal[ch+1] -= filtered_signal[ch+1, 0]   # baseline subtraction
         filtered_signal = np.abs(filtered_signal) # positive changes from baseline
         thr_signal = filtered_signal > thr
         sum_signal = np.sum(thr_signal, axis=0)
-        
-        thr_sum_signal = sum_signal > 16
-        if(np.count_nonzero(thr_sum_signal) > 100):
-            print("Noise detected at", (np.nonzero(thr_sum_signal)[0])[0]/fs , "secs")
+
+        ch_thr = 24
+        thr_sum_signal = sum_signal > ch_thr
+        min_len = 500
+        if np.count_nonzero(thr_sum_signal) > 0:
+            print(np.count_nonzero(thr_sum_signal), consecutive_one(thr_sum_signal))
+            if(consecutive_one(thr_sum_signal) > min_len):
+                print("Noise detected at", (np.nonzero(thr_sum_signal)[0])[0]/fs , "secs")
+            else:
+                print("No noise detected.")
         else:
             print("No noise detected.")
 
