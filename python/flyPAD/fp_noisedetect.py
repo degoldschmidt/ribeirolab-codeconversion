@@ -25,7 +25,6 @@ import json as js
 from datetime import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
-from vispy import plot as vp
 import scipy as sp
 import scipy.signal as sg
 from scipy.signal import hilbert
@@ -135,7 +134,7 @@ def main(argv):
     START = 0
     STOP  = 64
     STEP  = 2
-    
+
     for ind, _file in enumerate(files):
         print(_file)
         this_data = get_data(_file)
@@ -171,4 +170,4 @@ def main(argv):
 if __name__ == "__main__":
     startdt = dt.now()
     main(sys.argv[1:])
-    print("Done. Runtime:", strfdelta(dt.now() - startdt, "%H:%M:%S")) 
+    print("Done. Runtime:", strfdelta(dt.now() - startdt, "%H:%M:%S"))
