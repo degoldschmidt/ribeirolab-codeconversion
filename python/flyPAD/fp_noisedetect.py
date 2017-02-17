@@ -22,6 +22,7 @@ import os, sys
 from tkinter import *
 from tkinter import messagebox, filedialog
 import json as js
+import h5py as h5
 from datetime import datetime as dt
 import matplotlib
 matplotlib.use("TkAgg")
@@ -73,13 +74,16 @@ def get_data(_file, dur=360000, nch=64):
         #cap_data[cap_data==-1]=0
         return cap_data
 
-def get_datetime(_file):
-    return dt.strptime(_file[-19:], '%Y-%m-%dT%H_%S_%M')                        # timestamp of file
+def get_datetime(_file, printit=False):
+    this_time = dt.strptime(_file[-19:], '%Y-%m-%dT%H_%M_%S')
+    if printit:
+        print(this_time)
+    return this_time                                                            # timestamp of file
 
 def is_binary_cap(_file):
     with open(_file, 'rb') as f:
         if b'\x00' in f.read():
-            if has_timestamp(_file):    #### TODO: has timestamp function
+            if has_timestamp(_file):                                            #### TODO: has timestamp function
                     return True
             else:
                 return False
@@ -117,7 +121,7 @@ def strfdelta(tdelta, fmt):
     minutes, seconds = divmod(rem, 60)
     d["H"] = '{:02d}'.format(hours)
     d["M"] = '{:02d}'.format(minutes)
-    d["S"] = '{:05.3f}'.format(seconds + tdelta.microseconds/1000000)
+    d["S"] = '{:06.3f}'.format(seconds + tdelta.microseconds/1000000)
     t = DeltaTemplate(fmt)
     return t.substitute(**d)
 
@@ -138,7 +142,10 @@ def main(argv):
     STEP  = 2
 
     for ind, _file in enumerate(files):
-        print(_file)
+        #print(_file)
+        filedatetime = get_datetime(_file)
+        print(filedatetime.strftime("%d %b - %H:%M:%S"))
+        out_filename = filedatetime.strftime("%d-%m_%H:%M:%S")
         this_data = get_data(_file)
         filtered_signal = np.zeros(this_data.shape)
         sum_signal = np.zeros(t.shape)
@@ -146,7 +153,7 @@ def main(argv):
         for ch in range(START, STOP, STEP):
             #print(ch)
             """ This one does the magic """
-            ksize = 21##501
+            ksize = 21
             filtered_signal[ch+1] = sg.medfilt(this_data[ch+1], kernel_size=ksize)
             filtered_signal[ch+1] -= filtered_signal[ch+1, 0]   # baseline subtraction
         filtered_signal = np.abs(filtered_signal) # positive changes from baseline
@@ -164,6 +171,9 @@ def main(argv):
                 print("No noise detected.")
         else:
             print("No noise detected.")
+
+        with h5.File(os.path.dirname(_file)+"noise_timeline.h5", "w") as hf:
+            dset = hf.create_dataset(out_filename, data=thr_sum_signal, compression="lzf")
 
     # if no files are given
     if len(files) == 0:
