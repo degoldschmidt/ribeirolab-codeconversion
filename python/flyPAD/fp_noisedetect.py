@@ -23,7 +23,9 @@ from tkinter import *
 from tkinter import messagebox, filedialog
 import json as js
 from datetime import datetime as dt
-import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib import pyplot as plt
 import numpy as np
 import scipy as sp
 import scipy.signal as sg
