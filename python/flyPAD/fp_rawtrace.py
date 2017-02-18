@@ -48,7 +48,8 @@ def arg2files(_args):
             files.append(arg)
         if os.path.isdir(arg):
             for _file in os.listdir(arg):
-                if os.path.isfile(os.path.join(arg, _file)) and is_binary_cap(os.path.join(arg, _file)):
+                if os.path.isfile(os.path.join(arg, _file)) \
+                and is_binary_cap(os.path.join(arg, _file)):
                     files.append(arg+_file)
     return files
 
@@ -77,7 +78,7 @@ def get_datetime(_file):
 def is_binary_cap(_file):
     with open(_file, 'rb') as f:
         if b'\x00' in f.read():
-            if has_timestamp(_file):    #### TODO: has timestamp function
+            if has_timestamp(_file):                                            # TODO: has timestamp function
                     return True
             else:
                 return False
@@ -110,7 +111,7 @@ def main(argv):
     START = 0
     STOP  = 64
     STEP  = 2
-    
+
     # colors for plotting
     colz = ["#C900E5", "#C603E1", "#C306DD", "#C009DA", "#BD0CD6", "#BA0FD2", "#B812CF", "#B515CB", "#B218C7", "#AF1BC4", "#AC1EC0", "#A921BD", "#A724B9", "#A427B5", "#A12AB2", "#9E2DAE", "#9B30AA", "#9833A7", "#9636A3", "#93399F", "#903C9C", "#8D3F98", "#8A4295", "#884591", "#85488D", "#824B8A", "#7F4E86", "#7C5182", "#79547F", "#77577B", "#745A77", "#715D74", "#6E6170", "#6B646D", "#686769", "#666A65", "#636D62", "#60705E", "#5D735A", "#5A7657", "#577953", "#557C4F", "#527F4C", "#4F8248", "#4C8545", "#498841", "#478B3D", "#448E3A", "#419136", "#3E9432", "#3B972F", "#389A2B", "#369D27", "#33A024", "#30A320", "#2DA61D", "#2AA919", "#27AC15", "#25AF12", "#22B20E", "#1FB50A", "#1CB807", "#19BB03", "#17BF00"]
 
@@ -126,7 +127,7 @@ def main(argv):
     N = 360000
     t = np.arange(N)/float(fs)
     figs = []
-    
+
     for ind, _file in enumerate(files):
         print(_file)
         figs.append(vp.Fig(size=(1600, 1000), show=False))
@@ -152,7 +153,7 @@ def main(argv):
             filtered_signal = np.abs(filtered_signal-filtered_signal[0]) # positive changes from baseline
             thr_signal = filtered_signal > thr
             sum_signal += thr_signal
-            
+
             #plt_even.plot(np.array((t, filtered_signal)).T, marker_size=0, color=colz[ch])
             plt_even.plot(np.array((t, this_data[ch]+1000*ch)).T, marker_size=0, color=colz[ch])
             #plt_even.plot(np.array((t[thr_signal==1], 1000*thr_signal[thr_signal==1])).T, marker_size=0, color='r')

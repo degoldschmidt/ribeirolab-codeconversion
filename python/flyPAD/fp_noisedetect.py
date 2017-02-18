@@ -140,12 +140,14 @@ def main(argv):
     START = 0
     STOP  = 64
     STEP  = 2
-
+    allnoise = []
+    noised = []
+    outkeys = []
     for ind, _file in enumerate(files):
         #print(_file)
         filedatetime = get_datetime(_file)
-        print(filedatetime.strftime("%d %b - %H:%M:%S"))
-        out_filename = filedatetime.strftime("%d-%m_%H:%M:%S")
+        print(filedatetime.strftime("%d %b %H:%M:%S"))
+        outkeys.append(filedatetime.strftime("%d-%m %H:%M:%S"))
         this_data = get_data(_file)
         filtered_signal = np.zeros(this_data.shape)
         sum_signal = np.zeros(t.shape)
@@ -167,13 +169,21 @@ def main(argv):
             print(np.count_nonzero(thr_sum_signal), consecutive_one(thr_sum_signal))
             if(consecutive_one(thr_sum_signal) > min_len):
                 print("Noise detected at", (np.nonzero(thr_sum_signal)[0])[0]/fs , "secs")
+                noised.append(True)
             else:
                 print("No noise detected.")
+                noised.append(False)
         else:
             print("No noise detected.")
+            noised.append(False)
+        allnoise.append(thr_sum_signal)
 
-        with h5.File(os.path.dirname(_file)+"noise_timeline.h5", "w") as hf:
-            dset = hf.create_dataset(out_filename, data=thr_sum_signal, compression="lzf")
+    with h5.File(os.path.dirname(_file) + os.sep + "noise_timeline.h5", "w") as hf:
+        print("Writing file:", os.path.dirname(_file) + os.sep + "noise_timeline.h5")
+        for ind, noise in enumerate(allnoise):
+            print("Writing:", outkeys[ind])
+            dset = hf.create_dataset(outkeys[ind], data=noise, compression="lzf")
+            dset.attrs["noise"] = noised[ind]
 
     # if no files are given
     if len(files) == 0:
