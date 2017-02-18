@@ -88,9 +88,9 @@ def main(argv):
             print("t0:", tstart, "t1:", tend, "len:", len(hf[key]), "countd:", countd)
             time = np.linspace(tstart, tend, len(hf[key]), endpoint=False)
             data = hf[key][:]
-            plt.plot(time, data + 2*tray, 'k-')
+            plt.plot(time, 0*data + 2*tray, 'k-')
             if hf[key].attrs["noise"]:
-                plt.plot(time[data==1], data[data==1] + 2*tray, 'r.')
+                plt.plot(time[data==1], data[data==1] + 2*tray-1, 'r.')
     plt.show()
 
 if __name__ == "__main__":
