@@ -21,7 +21,6 @@ from matplotlib import rc, font_manager
 import numpy as np
 import scipy as sp
 import scipy.signal as sg
-from string import Template
 from itertools import groupby
 
 # metadata
@@ -33,17 +32,6 @@ __version__                 = "0.1"
 __maintainer__              = "Dennis Goldschmidt"
 __email__                   = "dennis.goldschmidt@neuro.fchampalimaud.org"
 __status__                  = "In development"
-
-def arg2files(_args):
-    files = []
-    for arg in _args:
-        if os.path.isfile(arg):
-            files.append(arg)
-        if os.path.isdir(arg):
-            for _file in os.listdir(arg):
-                if os.path.isfile(os.path.join(arg, _file)) and is_binary_cap(os.path.join(arg, _file)):
-                    files.append(arg+_file)
-    return files
 
 def len_iter(items):
     return sum(1 for _ in items)
@@ -64,32 +52,6 @@ def get_data(_file, dur=360000, nch=64):
         #cap_data[cap_data==-1]=0
         return cap_data
 
-def get_datetime(_file, printit=False):
-    this_time = dt.strptime(_file[-19:], '%Y-%m-%dT%H_%M_%S')
-    if printit:
-        print(this_time)
-    return this_time                                                            # timestamp of file
-
-def is_binary_cap(_file):
-    with open(_file, 'rb') as f:
-        if b'\x00' in f.read():
-            if has_timestamp(_file):                                            #### TODO: has timestamp function
-                    return True
-            else:
-                return False
-        else:
-            return False
-
-def has_timestamp(_file, printit=False):
-    try:
-        this_time = dt.strptime(_file[-8:], '%H_%M_%S')
-    except ValueError:
-        return False
-    else:
-        if printit:
-            print(this_time)
-        return True
-
 def get_median_filtered(signal, threshold=3):
     signal = signal.copy()
     difference = np.abs(signal - np.median(signal))
@@ -101,19 +63,6 @@ def get_median_filtered(signal, threshold=3):
     mask = s > threshold
     signal[mask] = np.median(signal)
     return signal
-
-class DeltaTemplate(Template):
-    delimiter = "%"
-
-def strfdelta(tdelta, fmt):
-    d = {"D": tdelta.days}
-    hours, rem = divmod(tdelta.seconds, 3600)
-    minutes, seconds = divmod(rem, 60)
-    d["H"] = '{:02d}'.format(hours)
-    d["M"] = '{:02d}'.format(minutes)
-    d["S"] = '{:06.3f}'.format(seconds + tdelta.microseconds/1000000)
-    t = DeltaTemplate(fmt)
-    return t.substitute(**d)
 
 def main(argv):
     # withdraw main window
