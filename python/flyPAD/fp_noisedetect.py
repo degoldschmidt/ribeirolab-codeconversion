@@ -1,10 +1,20 @@
 #!/usr/bin/env python
 """
-Script for detecting high-synchrony and -frequency noise in raw capacitance signals from flyPAD data file/s
+Script for extracting & plotting raw capacitance signals from flyPAD data file/s
 
 ###
 Usage:
+- rawtrace inputfile
+for plotting from one specified file
 
+- rawtrace inputfile1 inputfile2 ...
+for plotting multiple specified files
+
+- rawtrace inputdir
+for plotting from all files in a specified directory
+
+- rawtrace
+opens gui filedialog for selecting files
 """
 
 # import packages
@@ -20,6 +30,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import scipy as sp
 import scipy.signal as sg
+from scipy.signal import hilbert
 from string import Template
 from itertools import groupby
 
@@ -54,7 +65,7 @@ def get_data(_file, dur=360000, nch=64):
     with open(_file, 'rb') as f:                                                # with opening
         cap_data = np.fromfile(f, dtype=np.ushort)                              # read binary data into numpy ndarray (1-dim.)
         rows = cap_data.shape[0]                                                # to shorten next line
-        cap_data = (cap_data.reshape(nch, int(rows/nch), order='F').copy())     # reshape array into 64-dim. matrix and take the transpose (rows = time, cols = channels)
+        cap_data = (cap_data.reshape(nch, int(rows/nch), order='F').copy())           # reshape array into 64-dim. matrix and take the transpose (rows = time, cols = channels)
         if np.isfinite(dur) and dur < cap_data.shape[1]:
             cap_data = cap_data[:,:dur]                                         # cut off data longer than duration
         else:
@@ -133,6 +144,7 @@ def main(argv):
     noised = []
     outkeys = []
     for ind, _file in enumerate(files):
+        #print(_file)
         filedatetime = get_datetime(_file)
         print(filedatetime.strftime("%d %b %H:%M:%S"))
         outkeys.append(filedatetime.strftime("%d-%m %H:%M:%S"))
@@ -166,55 +178,12 @@ def main(argv):
             noised.append(False)
         allnoise.append(thr_sum_signal)
 
-    # saving noise data
-    asksave = messagebox.askquestion("Saving noise data", "Do you want to save noise data into file?", icon='warning')
-    if asksave == 'yes':
-        savefile = filedialog.asksaveasfilename(title="Save datafile as...", defaultextension=".h5")
-        with h5.File(savefile, "w") as hf:
-            print("Writing file:", savefile)
-            for ind, noise in enumerate(allnoise):
-                print("Writing:", outkeys[ind])
-                dset = hf.create_dataset(outkeys[ind], data=noise, compression="lzf")
-                dset.attrs["noise"] = noised[ind]
-
-    # plotting noise data
-    day=0
-    countd=-1
-    tray = 0
-    plt.ion()
-    for ind, noise in enumerate(allnoise):
-        if (ind == 8 or ind == 10): ## TODO: excluding certain files this is specific
-            continue
-        tray +=1
-        print(outkeys[ind], noised[ind])
-        key = outkeys[ind]
-        secs = int(key[-2:])
-        mins = int(key[-5:-3])
-        hour = int(key[-8:-6])
-        if day != int(key[0:2]):
-            day = int(key[0:2])
-            countd += 1
-        if ind == 0:
-            hourzero = hour
-        tstart = secs + mins*60 + (hour-hourzero)*3600 + countd*16*3600
-        tend = tstart + len(noise)/100.
-        print("t0:", tstart, "t1:", tend, "len:", len(noise), "countd:", countd)
-        time = np.linspace(tstart, tend, len(noise), endpoint=False)
-        plt.plot(time, 0*noise + 2*tray, 'k-')
-        plt.xlabel('Day time')
-        if noised[ind]:
-            plt.plot(time[noise==1], noise[noise==1] + 2*tray-1, 'r.')
-    x = np.concatenate( (3600. * np.arange(9), 3600. * np.arange(-1,8) + 16*3600) )
-    labels = ["9:00", "10:00","11:00","12:00","13:00","14:00","15:00","16:00", "17:00", "8:00", "9:00","10:00","11:00","12:00","13:00","14:00","15:00", "16:00"]
-    plt.xticks(x, labels, rotation='horizontal')
-    plt.draw()
-
-    # saving plot
-    asksave = messagebox.askquestion("Saving plot of noise data", "Do you want to save the plot of noise data into a png file?", icon='warning')
-    if asksave:
-        savefile = filedialog.asksaveasfilename(title="Save datafile as...", defaultextension=".png")
-        plt.savefig(savefile, dpi=300, bbox_inches='tight')
-    plt.close()
+    with h5.File(os.path.dirname(_file) + os.sep + "noise_timeline.h5", "w") as hf:
+        print("Writing file:", os.path.dirname(_file) + os.sep + "noise_timeline.h5")
+        for ind, noise in enumerate(allnoise):
+            print("Writing:", outkeys[ind])
+            dset = hf.create_dataset(outkeys[ind], data=noise, compression="lzf")
+            dset.attrs["noise"] = noised[ind]
 
     # if no files are given
     if len(files) == 0:
