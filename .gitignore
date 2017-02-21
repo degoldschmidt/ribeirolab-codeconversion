@@ -91,3 +91,4 @@ ENV/
 python/FlyPAD analysis/events.npy
 
 python/FlyPAD analysis/events.npz
+*.png
