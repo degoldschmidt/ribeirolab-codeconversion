@@ -16,12 +16,13 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib import pyplot as plt
+import numpy as np
 
 class App():
     def __init__(self):
         self.root = Tk()
         ico = icopath() + 'glue.png'
-        img = PhotoImage(file=ico)
+        img = ImageTk.PhotoImage(file=ico)
         self.root.tk.call('wm', 'iconphoto', self.root._w, img)
         self.root.title('flyPAD Glue')
         self.root.configure(bg='white')
@@ -52,22 +53,22 @@ class App():
 
         # canvas for data
         f = plt.Figure(figsize=(2,0.5), dpi=100)
-        a = f.add_subplot(111)
-        a.plot([1,2,3,4],[1,1,1,1],'r-', linewidth=8)
-        a.axis('off')
+        self.ax = f.add_subplot(111)
+        self.ax.axis('off')
         self.canvas = FigureCanvasTkAgg(f, master=self.root)
         self.canvas.draw()
         self.canvas.get_tk_widget().grid(row=2, column=0, columnspan=lbxw+1, sticky=W+E+N+S)
 
         ### data structure
         self.dtime = []
+        self.len = []
 
     def add(self):
         files = filedialog.askopenfilenames(title='Choose file/s to load')
         for _file in files:
             self.dtime.append(get_datetime(_file))
             self.listbox.insert(END, self.dtime[-1])
-        ### refreshFigure
+        self.refresh_fig(np.array([1,2,3,4]),np.array([1,1,1,1]))
 
     def add_button(self, _root, _name, _command):
         button = Button(_root,justify = LEFT, highlightthickness=0,bd=0, bg='white', command=_command)
@@ -88,11 +89,11 @@ class App():
         self.nextbutton += 1
         return self.nextbutton
 
-    def refreshFigure(self,x,y):
-        self.line1.set_data(x,y)
+    def refresh_fig(self,x,y):
+        self.ax.plot(x,y,'r-')
         ax = self.canvas.figure.axes[0]
         ax.set_xlim(x.min(), x.max())
-        ax.set_ylim(y.min(), y.max())
+        ax.set_ylim(0.95, 1.05)
         self.canvas.draw()
 
 
