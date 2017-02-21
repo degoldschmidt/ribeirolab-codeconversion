@@ -94,7 +94,6 @@ def main(argv):
             if hf[key].attrs["noise"]:
                 plt.plot(time[data==1], data[data==1] + 2*tray-1, 'r.')
     x = np.concatenate( (3600. * np.arange(9), 3600. * np.arange(-1,8) + 16*3600) )
-    print(x.shape)
     labels = ["9:00", "10:00","11:00","12:00","13:00","14:00","15:00","16:00", "17:00", "8:00", "9:00","10:00","11:00","12:00","13:00","14:00","15:00", "16:00"]
     plt.xticks(x, labels, rotation='horizontal')
     plt.show()
