@@ -104,6 +104,11 @@ def is_binary_cap(_file):
         else:
             return False
 
+def write_data(_file, _data):
+    with open(_file, mode='wb') as f:
+        _data.tofile(f)
+    f.close()
+
 if __name__ == '__main__':
     print(millisecs(1000)) ## 1 second
     print(millisecs(10000)) ## 10 seconds

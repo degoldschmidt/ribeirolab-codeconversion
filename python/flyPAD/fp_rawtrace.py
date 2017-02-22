@@ -23,6 +23,8 @@ from tkinter import *
 from tkinter import messagebox, filedialog
 import json as js
 from datetime import datetime as dt
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import numpy as np
 from vispy import plot as vp

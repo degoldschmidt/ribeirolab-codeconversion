@@ -11,19 +11,20 @@ from tkinter import *
 from tkinter import messagebox, filedialog
 from tkinter import ttk
 from PIL import Image, ImageTk
-from helper import base, dirn, get_raw_data, get_data_len, get_datetime, get_endtime, icopath, millisecs, now, secs, strfdelta
+from helper import base, dirn, get_raw_data, get_data_len, get_datetime, get_endtime, icopath, millisecs, now, secs, strfdelta, write_data
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib import pyplot as plt
 import numpy as np
 from datetime import datetime as dt
+import os
 
 class App():
     def __init__(self):
         self.root = Tk()
         ico = icopath() + 'glue.png'
-        img = ImageTk.PhotoImage(file=ico)
+        img = ImageTk.PhotoImage(Image.open(ico))
         self.root.tk.call('wm', 'iconphoto', self.root._w, img)
         self.root.title('flyPAD Glue')
         self.root.configure(bg='white')
@@ -101,14 +102,16 @@ class App():
         fulldata = get_raw_data(files[0])
         for ind, _file in enumerate(files[1:]):
             data = get_raw_data(_file)
-            bufferdata = np.zeros(int(nch*fs*self.buffer[ind]))
+            bufferdata = np.zeros(nch*int(fs*self.buffer[ind]))
             fulldata = np.concatenate((fulldata, data, bufferdata))
 
-        ### CHECK LENGTHS #print(secs(self.totallen), " == ", fulldata.shape[0]/(nch*fs), "?")
+        ### CHECK LENGTHS
+        print(self.totallen, " == ", fulldata.shape[0]/nch, "?")
         # saving file
         asksave = messagebox.askquestion("Saving glued data", "Do you want to save glued data into file?", icon='warning')
         if asksave == 'yes':
             savefile = filedialog.asksaveasfilename(title="Save datafile as...", defaultextension="", initialdir=dirn(files[0]), initialfile="GLUED"+base(files[0]))
+            write_data(savefile, fulldata)
 
     def next_button(self):
         self.nextbutton += 1
@@ -158,6 +161,8 @@ def main(argv):
     app.root.mainloop()
 
 if __name__ == "__main__":
+    _apppath = '/Users/degoldschmidt/workspace/ribeirolab-codeconversion/python/flyPAD/'
     startdt = now()
+    os.chdir(_apppath)
     main(sys.argv[1:])
     print("Done. Runtime:", strfdelta(now() - startdt, "%H:%M:%S"))
