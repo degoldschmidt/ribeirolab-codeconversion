@@ -22,6 +22,7 @@ import numpy as np
 import scipy as sp
 import scipy.signal as sg
 from itertools import groupby
+from helper import *
 
 # metadata
 __author__                  = "Dennis Goldschmidt"
@@ -38,19 +39,6 @@ def len_iter(items):
 
 def consecutive_one(data):
     return max(len_iter(run) for val, run in groupby(data) if val)
-
-def get_data(_file, dur=360000, nch=64):
-    with open(_file, 'rb') as f:                                                # with opening
-        cap_data = np.fromfile(f, dtype=np.ushort)                              # read binary data into numpy ndarray (1-dim.)
-        rows = cap_data.shape[0]                                                # to shorten next line
-        cap_data = (cap_data.reshape(nch, int(rows/nch), order='F').copy())     # reshape array into 64-dim. matrix and take the transpose (rows = time, cols = channels)
-        if np.isfinite(dur) and dur < cap_data.shape[1]:
-            cap_data = cap_data[:,:dur]                                         # cut off data longer than duration
-        else:
-            if dur > cap_data.shape[1]:                                         # warning
-                print("Warning: data shorter than given duration")
-        #cap_data[cap_data==-1]=0
-        return cap_data
 
 def get_median_filtered(signal, threshold=3):
     signal = signal.copy()

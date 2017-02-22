@@ -12,6 +12,9 @@ def get_datetime(_file, printit=False):
         print(this_time)
     return this_time
 
+def get_endtime(_dtime, _len):
+    return (_dtime) + millisecs(_len)
+
 def has_timestamp(_file, printit=False):
     try:
         this_time = dt.strptime(_file[-8:], '%H_%M_%S')
@@ -27,6 +30,9 @@ def millisecs(_ms):
 
 def now():
     return dt.now()
+
+def secs(_tdelta):
+    return _tdelta.total_seconds()
 
 class DeltaTemplate(Template):
     delimiter = "%"
@@ -54,6 +60,32 @@ def arg2files(_args):
                     files.append(arg+_file)
     return files
 
+def base(_file):
+    return os.path.basename(_file)
+
+def dirn(_file):
+    return os.path.dirname(_file)
+
+def get_data(_file, dur=360000, nch=64):
+    with open(_file, 'rb') as f:                                                # with opening
+        cap_data = np.fromfile(f, dtype=np.ushort)                              # read binary data into numpy ndarray (1-dim.)
+        rows = cap_data.shape[0]                                                # to shorten next line
+        cap_data = (cap_data.reshape(nch, int(rows/nch), order='F').copy())     # reshape array into 64-dim. matrix and take the transpose (rows = time, cols = channels)
+        if dur == -1:                                                           # take all of the data
+            pass
+        elif np.isfinite(dur) and dur < cap_data.shape[1]:
+            cap_data = cap_data[:,:dur]                                         # cut off data longer than duration
+        else:
+            if dur > cap_data.shape[1]:                                         # warning
+                print("Warning: data shorter than given duration")
+        #cap_data[cap_data==-1]=0
+        return cap_data
+
+def get_raw_data(_file):
+    with open(_file, 'rb') as f:                                                # with opening
+        cap_data = np.fromfile(f, dtype=np.ushort)                              # read binary data into numpy ndarray (1-dim.)
+        return cap_data
+
 def get_data_len(_file, nch=64):
     with open(_file, 'rb') as f:                                                # with opening
         cap_data = np.fromfile(f, dtype=np.ushort)                              # read binary data into numpy ndarray (1-dim.)
@@ -71,3 +103,11 @@ def is_binary_cap(_file):
                 return False
         else:
             return False
+
+if __name__ == '__main__':
+    print(millisecs(1000)) ## 1 second
+    print(millisecs(10000)) ## 10 seconds
+    print(millisecs(100000)) ## 1:40 minutes
+    delta = get_endtime(now(),10) - now()
+    print(now(), get_endtime(now(),100000))
+    print(secs(delta))
