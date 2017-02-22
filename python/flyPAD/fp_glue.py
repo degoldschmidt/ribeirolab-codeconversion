@@ -123,7 +123,8 @@ class App():
         self.canvas.draw()
 
     def remove(self):
-        remkey = dt.strptime(self.lb.get(self.lb.curselection()), "%Y-%m-%d %H:%M:%S")
+        cursel = self.lb.curselection()[0]
+        remkey = dt.strptime(self.lb.get(cursel), "%Y-%m-%d %H:%M:%S")
         self.data.pop(remkey, None)
         self.lb.delete(ANCHOR)
         self.update()
@@ -139,7 +140,14 @@ class App():
                 for ind in range(len(sortkeys)-1):
                     start = get_endtime(sortkeys[ind], self.data[sortkeys[ind]]["length"]) - sortkeys[0]
                     end = sortkeys[ind+1] - sortkeys[0]
-                    self.buffer.append(secs(end) - secs(start))
+                    delta = secs(end) - secs(start)
+                    if delta < 0:
+                        this_file = self.data[sortkeys[ind]]["filename"]
+                        that_file = self.data[sortkeys[ind+1]]["filename"]
+                        messagebox.showwarning("Warning: Overlap detected", base(this_file)+ " and "+base(that_file)+" seem to overlap. Glued data will be invalid.")
+                        self.buffer.append(0)
+                    else:
+                        self.buffer.append(secs(end) - secs(start))
                     self.refresh_fig(np.array([ secs(start) , secs(end)]),np.array([1,1]), 'r-', resize=False)
         else:
             self.clear_fig()
