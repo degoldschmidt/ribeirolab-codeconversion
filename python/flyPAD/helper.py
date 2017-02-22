@@ -1,5 +1,7 @@
+import numpy as np
 import os
 from datetime import datetime as dt
+from datetime import timedelta
 from string import Template
 
 ### datetime helpers
@@ -19,6 +21,9 @@ def has_timestamp(_file, printit=False):
         if printit:
             print(this_time)
         return True
+
+def millisecs(_ms):
+    return timedelta(microseconds=_ms*1000)
 
 def now():
     return dt.now()
@@ -48,6 +53,11 @@ def arg2files(_args):
                 if os.path.isfile(os.path.join(arg, _file)) and is_binary_cap(os.path.join(arg, _file)):
                     files.append(arg+_file)
     return files
+
+def get_data_len(_file, nch=64):
+    with open(_file, 'rb') as f:                                                # with opening
+        cap_data = np.fromfile(f, dtype=np.ushort)                              # read binary data into numpy ndarray (1-dim.)
+    return int(len(cap_data)/nch)
 
 def icopath():
     return '..'+ os.sep + '..' + os.sep + 'ico'+ os.sep

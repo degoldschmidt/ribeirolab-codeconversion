@@ -11,7 +11,7 @@ from tkinter import *
 from tkinter import messagebox, filedialog
 from tkinter import ttk
 from PIL import Image, ImageTk
-from helper import get_datetime, icopath, now, strfdelta
+from helper import get_data_len, get_datetime, icopath, millisecs, now, strfdelta
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
@@ -37,7 +37,6 @@ class App():
         self.listbox.grid(column=0, columnspan=lbxw, row=0)
 
         scrollbar = Scrollbar(self.root)
-        #scrollbar.config(bg='white', highlightcolor='#45d69c', activebackground='#45d69c', troughcolor='#45d69c')
         scrollbar.grid(column=lbxw+1, row=0, sticky=W+E+N+S)
 
         # attach listbox to scrollbar
@@ -60,14 +59,21 @@ class App():
         self.canvas.get_tk_widget().grid(row=2, column=0, columnspan=lbxw+1, sticky=W+E+N+S)
 
         ### data structure
-        self.dtime = []
-        self.len = []
+        self.lens = {}
 
     def add(self):
         files = filedialog.askopenfilenames(title='Choose file/s to load')
         for _file in files:
-            self.dtime.append(get_datetime(_file))
-            self.listbox.insert(END, self.dtime[-1])
+            dtime = get_datetime(_file)
+            self.lens[get_datetime(_file)] = get_data_len(_file)
+
+        self.listbox.delete(0, END)
+        sortkeys = sorted(self.lens.keys())
+        for key in sortkeys:
+            self.listbox.insert(END, key)
+        endtime = (sortkeys[-1] + millisecs(self.lens[sortkeys[-1]]))
+        totallen = endtime - sortkeys[0]
+        print(((sortkeys[-1], millisecs(10*self.lens[sortkeys[-1]])), endtime, sortkeys[0]), totallen)
         self.refresh_fig(np.array([1,2,3,4]),np.array([1,1,1,1]))
 
     def add_button(self, _root, _name, _command):
