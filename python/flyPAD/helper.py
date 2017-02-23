@@ -7,7 +7,8 @@ from string import Template
 ### datetime helpers
 
 def get_datetime(_file, printit=False):
-    this_time = dt.strptime(_file[-19:], '%Y-%m-%dT%H_%M_%S')
+    consta = 14
+    this_time = dt.strptime(_file[-19-consta:-consta], '%Y-%m-%dT%H_%M_%S')
     if printit:
         print(this_time)
     return this_time
