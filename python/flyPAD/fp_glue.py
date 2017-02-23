@@ -98,20 +98,22 @@ class App():
 
     def glue(self, nch=64, fs=100):
         sortkeys = sorted(self.data.keys())
-        files = [self.data[sortkey]["filename"] for sortkey in sortkeys]
-        fulldata = get_raw_data(files[0])
-        for ind, _file in enumerate(files[1:]):
-            data = get_raw_data(_file)
-            bufferdata = np.zeros(nch*int(fs*self.buffer[ind]))
-            fulldata = np.concatenate((fulldata, data, bufferdata))
+        if len(sortkeys):
+            files = [self.data[sortkey]["filename"] for sortkey in sortkeys]
+            fulldata = get_raw_data(files[0])
+            lastvalue = fulldata[-64:]
+            for ind, _file in enumerate(files[1:]):
+                data = get_raw_data(_file)
+                bufferdata = np.tile(lastvalue, int(fs*self.buffer[ind]))
+                fulldata = np.concatenate((fulldata, bufferdata, data))
 
-        ### CHECK LENGTHS
-        print(self.totallen, " == ", fulldata.shape[0]/nch, "?")
-        # saving file
-        asksave = messagebox.askquestion("Saving glued data", "Do you want to save glued data into file?", icon='warning')
-        if asksave == 'yes':
-            savefile = filedialog.asksaveasfilename(title="Save datafile as...", defaultextension="", initialdir=dirn(files[0]), initialfile="GLUED"+base(files[0]))
-            write_data(savefile, fulldata)
+            ### CHECK LENGTHS
+            print(self.totallen, " == ", fulldata.shape[0]/nch, "?")
+            # saving file
+            asksave = messagebox.askquestion("Saving glued data", "Do you want to save glued data into file?", icon='warning')
+            if asksave == 'yes':
+                savefile = filedialog.asksaveasfilename(title="Save datafile as...", defaultextension="", initialdir=dirn(files[0]), initialfile="GLUED"+base(files[0]))
+                write_data(savefile, fulldata)
 
     def next_button(self):
         self.nextbutton += 1
@@ -141,6 +143,7 @@ class App():
             if len(sortkeys) > 1:
                 self.buffer = []
                 for ind in range(len(sortkeys)-1):
+                    #print(ind)
                     start = get_endtime(sortkeys[ind], self.data[sortkeys[ind]]["length"]) - sortkeys[0]
                     end = sortkeys[ind+1] - sortkeys[0]
                     delta = secs(end) - secs(start)
@@ -161,8 +164,8 @@ def main(argv):
     app.root.mainloop()
 
 if __name__ == "__main__":
-    _apppath = '/Users/degoldschmidt/workspace/ribeirolab-codeconversion/python/flyPAD/'
+    #_apppath = '/Users/degoldschmidt/workspace/ribeirolab-codeconversion/python/flyPAD/'
     startdt = now()
-    os.chdir(_apppath)
+    #os.chdir(_apppath)
     main(sys.argv[1:])
     print("Done. Runtime:", strfdelta(now() - startdt, "%H:%M:%S"))

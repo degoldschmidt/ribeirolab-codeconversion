@@ -33,6 +33,7 @@ import scipy.signal as sg
 from scipy.signal import hilbert
 from itertools import groupby
 import platform
+from helper import *
 
 # metadata
 __author__                  = "Dennis Goldschmidt"
@@ -144,6 +145,10 @@ def main(argv):
         plt_even.title.text = os.path.basename(_file) + " even CH"
         plt_odd.title.text = os.path.basename(_file) + " odd CH"
         this_data = get_data(_file)
+        if N > get_data_len(_file):
+            N = get_data_len(_file)
+            t = np.arange(N)/float(fs)
+        print(this_data.shape)
         diff_data = np.zeros(t.shape)
         sum_signal = np.zeros(t.shape)
         thr = 200
@@ -166,6 +171,7 @@ def main(argv):
             plt_odd.plot(np.array((t, this_data[ch+1]+1000*ch)).T, marker_size=0, color=colz[ch])
         ch_thr = 24
         thr_sum_signal = sum_signal > ch_thr
+
         if np.count_nonzero(thr_sum_signal) > 0:
             print(np.count_nonzero(thr_sum_signal), consecutive_one(thr_sum_signal))
             if(consecutive_one(thr_sum_signal) > 500):

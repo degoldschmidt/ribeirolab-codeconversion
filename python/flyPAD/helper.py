@@ -81,15 +81,15 @@ def get_data(_file, dur=360000, nch=64):
         #cap_data[cap_data==-1]=0
         return cap_data
 
-def get_raw_data(_file):
-    with open(_file, 'rb') as f:                                                # with opening
-        cap_data = np.fromfile(f, dtype=np.ushort)                              # read binary data into numpy ndarray (1-dim.)
-        return cap_data
-
 def get_data_len(_file, nch=64):
     with open(_file, 'rb') as f:                                                # with opening
         cap_data = np.fromfile(f, dtype=np.ushort)                              # read binary data into numpy ndarray (1-dim.)
     return int(len(cap_data)/nch)
+
+def get_raw_data(_file):
+    with open(_file, 'rb') as f:                                                # with opening
+        cap_data = np.fromfile(f, dtype=np.ushort)                              # read binary data into numpy ndarray (1-dim.)
+        return cap_data
 
 def icopath():
     return '..'+ os.sep + '..' + os.sep + 'ico'+ os.sep
@@ -105,8 +105,11 @@ def is_binary_cap(_file):
             return False
 
 def write_data(_file, _data):
+    ushdata = _data.astype(np.ushort)
+    print(ushdata.dtype)
+
     with open(_file, mode='wb') as f:
-        _data.tofile(f)
+        ushdata.tofile(f)
     f.close()
 
 if __name__ == '__main__':
