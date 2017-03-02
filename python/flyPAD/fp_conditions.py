@@ -15,7 +15,10 @@ from pprint import pprint
 import click
 
 def dicto(_file, _dict):
+    print("Write into", _file)
     with open(_file, "w") as json_file:
+        print("Dump")
+        printd(_dict)
         js.dump(_dict, json_file)
 
 def dicti(_file):
@@ -238,6 +241,5 @@ if __name__ == "__main__":
             st = ind*int(NA/len(conds))+1
             en = (ind+1)*int(NA/len(conds))
             dictc["range"] = [st , en]  # arena indices
-    printd(conditions)
-    savefile = filedialog.asksaveasfilename(title="Save datafile as...", defaultextension="", initialdir=dirn(files[0]))
-    dicto = (savefile, conditions)
+    savefile = filedialog.asksaveasfilename(title="Save datafile as...", defaultextension=".json", initialdir=dirn(files[0]))
+    dicto(savefile, conditions)
