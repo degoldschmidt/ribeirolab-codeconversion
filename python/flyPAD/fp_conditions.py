@@ -27,11 +27,14 @@ def printd(_dict):
         print("File:", tskey)
         curfile = _dict[tskey]
         for condkey in curfile.keys():
-            cond = curfile[condkey]
-            print("|             ")
-            print("+-- Condition:", condkey)
-            #print("   |          ")
-            #print("   +-- from", cond["range"][0], "to", cond["range"][1])
+            if type(curfile[condkey]) is dict:
+                cond = curfile[condkey]
+                print("|             ")
+                print("+-- Condition:", condkey)
+                for key in cond.keys():
+                    if key == "range":
+                        print("   |          ")
+                        print("   +-- from", cond[key][0], "to", cond[key][1])
 
 class App():
     def __init__(self):
@@ -236,8 +239,5 @@ if __name__ == "__main__":
             en = (ind+1)*int(NA/len(conds))
             dictc["range"] = [st , en]  # arena indices
     printd(conditions)
-
-    asksave = messagebox.askquestion("Saving conditions file", "Do you want to save conditions into a file?", icon='warning')
-    if asksave == 'yes':
-        savefile = filedialog.asksaveasfilename(title="Save datafile as...", defaultextension="", initialdir=dirn(files[0]))
-        dicto = (savefile, conditions)
+    savefile = filedialog.asksaveasfilename(title="Save datafile as...", defaultextension="", initialdir=dirn(files[0]))
+    dicto = (savefile, conditions)

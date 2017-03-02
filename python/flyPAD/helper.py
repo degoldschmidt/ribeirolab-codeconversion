@@ -7,8 +7,13 @@ from string import Template
 ### datetime helpers
 
 def get_datetime(_file, printit=False):
-    consta = 14
-    this_time = dt.strptime(_file[-19-consta:-consta], '%Y-%m-%dT%H_%M_%S')
+    dtlen = 19
+    jfile = os.path.basename(_file)
+    for index in range(len(jfile)-dtlen+1):
+        if is_timestamp(jfile[index:index+dtlen]):
+            j = index
+            break
+    this_time = dt.strptime(jfile[j:j+dtlen], '%Y-%m-%dT%H_%M_%S')
     if printit:
         print(this_time)
     return this_time
@@ -16,10 +21,26 @@ def get_datetime(_file, printit=False):
 def get_endtime(_dtime, _len):
     return (_dtime) + millisecs(_len)
 
-def has_timestamp(_file, printit=False):
+def has_timestamp(_file, printit=False, index=19):
+    dtlen = 19
     try:
-        this_time = dt.strptime(_file[-8:], '%H_%M_%S')
+        this_time = dt.strptime(_file[index:index+dtlen], '%Y-%m-%dT%H_%M_%S')
     except ValueError:
+        if printit:
+            print("ValueError.")
+        return False
+    else:
+        if printit:
+            print("Is timestamp.")
+        return True
+
+def is_timestamp(_file, printit=False):
+    dtlen = 19
+    try:
+        this_time = dt.strptime(_file, '%Y-%m-%dT%H_%M_%S')
+    except ValueError:
+        if printit:
+            print("ValueError")
         return False
     else:
         if printit:

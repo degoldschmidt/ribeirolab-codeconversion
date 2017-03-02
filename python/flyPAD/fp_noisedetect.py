@@ -70,8 +70,6 @@ def main(argv):
             break
 
         fs = 100.
-        N = 360000
-        t = np.arange(N)/float(fs)
         START = 0
         STOP  = 64
         STEP  = 2
@@ -80,12 +78,16 @@ def main(argv):
             filedatetime = get_datetime(_file)
             print(filedatetime.strftime("%d %b %H:%M:%S"))
             outkeys.append(filedatetime.strftime("%d-%m %H:%M:%S"))
-            this_data = get_data(_file)
+            N = get_data_len(_file)
+            print(N)
+            t = np.arange(N)/float(fs)
+            this_data = get_data(_file, dur=N)
             filtered_signal = np.zeros(this_data.shape)
             sum_signal = np.zeros(t.shape)
             thr = 200
             for ch in range(START, STOP, STEP):
-                #print(ch)
+                if N > 1000000:
+                    print(ch)
                 """ This one does the magic """
                 ksize = 21
                 filtered_signal[ch+1] = sg.medfilt(this_data[ch+1], kernel_size=ksize)
