@@ -82,7 +82,7 @@ def main():
     for i,ax in enumerate(axes):
         ax = swarmbox(Df[i], "Label", "Data", np.log10(1./np.array(plotpvals[i])), ax)
         ax2 = ax.twinx()
-        ax2.plot(np.log10(1./np.array(plotpvals[i])), 'k-', linewidth=1)
+        ax2.plot(np.log10(1./np.array(plotpvals[i])), 'k-', linewidth=0.5)
         ax.set_xticklabels(Labels[i], rotation=60, ha='right')
         ax.grid(which='major', axis='y', linestyle='--')
         ax.tick_params(axis='both', direction='out', labelsize=9, pad=1)
