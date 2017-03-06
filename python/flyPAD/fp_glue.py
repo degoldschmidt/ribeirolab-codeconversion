@@ -106,7 +106,11 @@ class App():
                 data = get_raw_data(_file)
                 bufferdata = np.tile(lastvalue, int(fs*self.buffer[ind]))
                 fulldata = np.concatenate((fulldata, bufferdata, data))
-
+            if len(sortkeys) == 1:
+                if fulldata.shape[0]/nch < 360000:
+                    print("Adding some constant data at the end")
+                    bufferdata = np.tile(lastvalue, 360000-int(fulldata.shape[0]/nch))
+                    fulldata = np.concatenate((fulldata, bufferdata))
             ### CHECK LENGTHS
             print(self.totallen, " == ", fulldata.shape[0]/nch, "?")
             # saving file

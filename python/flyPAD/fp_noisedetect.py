@@ -62,6 +62,7 @@ def main(argv):
     allnoise = []
     noised = []
     outkeys = []
+    fs = 100.
     askload = messagebox.askquestion("Detect noise data from files", "Do you want to open files to detect noise?", icon='warning')
     while askload == 'yes':
         if len(argv)==0:
@@ -69,7 +70,6 @@ def main(argv):
         if len(files) == 0:
             break
 
-        fs = 100.
         START = 0
         STOP  = 64
         STEP  = 2
@@ -150,7 +150,10 @@ def main(argv):
         key = outkeys[ind]
         if day == 0:
             day = int(key[0:2])
-        print(key)
+        if noised[ind]:
+            print(key, "Noise detected at", (np.nonzero(noise)[0])[0]/fs , "secs.")
+        else:
+            print(key, "No noise detected.")
         secs = int(key[-2:])
         mins = int(key[-5:-3])
         hour = int(key[-8:-6])
