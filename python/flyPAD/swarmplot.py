@@ -8,7 +8,7 @@ import numpy as np
 import h5py as h5
 import hdf5storage
 import pandas as pd
-import os
+import os, math
 sns.set_style("ticks")
 sns.despine(left=True)
 tips = sns.load_dataset("tips")
@@ -29,22 +29,23 @@ def h5_to_panda(_file, _id):
     yeast_ps = pvals[0]
     sucrose_ps = pvals[1]
     numdtpoints = yeast_data.size-np.count_nonzero(~np.isnan(yeast_data))
-    Yout = {"Label": [], "Data": [], "Median": [], "PVal": []}
-    Sout = {"Label": [], "Data": [], "Median": [], "PVal": []}
+    Yout = {"Label": [], "Data": [], "Median": [], "Sign": []}
+    Sout = {"Label": [], "Data": [], "Median": [], "Sign": []}
     for row in range(yeast_data.shape[0]):      # different datapoints same label
         for col in range(yeast_data.shape[1]):      # different labels
             if ~np.isnan(yeast_data[row, col]):
                 Yout["Label"].append(labels[col])
                 Yout["Data"].append(yeast_data[row, col])
                 Yout["Median"].append(np.nanmedian(yeast_data[:,col]))
-                Yout["PVal"].append(np.log10(1./yeast_ps[col]))
+                Yout["Sign"].append("Yes" if math.log10(1./yeast_ps[col])>2 else "No")
             if ~np.isnan(sucrose_data[row, col]):
                 Sout["Label"].append(labels[col])
                 Sout["Data"].append(sucrose_data[row, col])
                 Sout["Median"].append(np.nanmedian(sucrose_data[:,col]))
-                Sout["PVal"].append(np.log10(1./sucrose_ps[col]))
+                Sout["Sign"].append("Yes" if np.log10(1./sucrose_ps[col])>2 else "No")
     Ydf = pd.DataFrame(Yout)
     Sdf = pd.DataFrame(Sout)
+
     Pvals = {}
     for ind, label in enumerate(labels):
         Pvals[label] = [yeast_ps[ind], sucrose_ps[ind]]
@@ -53,11 +54,10 @@ def h5_to_panda(_file, _id):
 
 def swarmbox(_data, _x, _y, _pval, _ax):
     #_ax = sns.stripplot(x=_x, y=_y, data=_data, color=".25", size=1.5,  jitter=0.05, ax=_ax)
-    colorlist = [".35" if pv < 2 else "red" for pv in _pval]
-    cl = sns.color_palette(colorlist)
-    _ax = sns.swarmplot(x=_x, y=_y, hue="PVal", data=_data, size=2, ax=_ax)
-    _ax = sns.pointplot(x=_x, y=_y, data=_data, estimator=np.median, ci=None, join=False, color=cl, markers="_", scale=0.75, ax=_ax)
+    _ax = sns.swarmplot(x=_x, y=_y, hue="Sign", data=_data, size=2, ax=_ax, palette=dict(Yes = 'r', No = 'k'))
+    _ax = sns.pointplot(x=_x, y=_y, data=_data, estimator=np.median, ci=None, join=False, color="0.5", markers="_", scale=0.75, ax=_ax)
     #_ax = sns.violinplot(x=_x, y=_y, data=_data, inner=None, ax=_ax)
+    #pal = {_x: "r" if _data[_pval][i] == "Yes" else "k" for i, label in enumerate(_data[_x])}
     _ax = sns.boxplot(x=_x, y=_y, data=_data, width=0.4, linewidth=0.5, showcaps=False,boxprops={'facecolor':'.85'}, showfliers=False,whiskerprops={'linewidth':0}, ax=_ax)
     return _ax
 
@@ -82,7 +82,7 @@ def main():
     for i,ax in enumerate(axes):
         ax = swarmbox(Df[i], "Label", "Data", np.log10(1./np.array(plotpvals[i])), ax)
         ax2 = ax.twinx()
-        ax2.plot(np.log10(1./np.array(plotpvals[i])), 'k-')
+        ax2.plot(np.log10(1./np.array(plotpvals[i])), 'k-', linewidth=1)
         ax.set_xticklabels(Labels[i], rotation=60, ha='right')
         ax.grid(which='major', axis='y', linestyle='--')
         ax.tick_params(axis='both', direction='out', labelsize=9, pad=1)
