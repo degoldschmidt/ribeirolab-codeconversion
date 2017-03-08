@@ -1,101 +1,50 @@
-import matplotlib.pyplot as plt
-import seaborn as sns
 from helper import now, strfdelta
 from tkinter import *
 from tkinter import messagebox, filedialog
 from tkinter import ttk
-import numpy as np
-import h5py as h5
-import hdf5storage
-import pandas as pd
 import os, math
-sns.set_style("ticks")
-sns.despine(left=True)
-tips = sns.load_dataset("tips")
+from fp_plot import plot_id, plot_pi, plot_scatter
 
-def h5_to_panda(_file, _id):
-    dataid = "data2/" + _id.replace(" ","_")
-    pid = "PVALS/" + _id.replace(" ","_")
-    out = hdf5storage.loadmat(_file, variable_names=[dataid, pid, "LABELS"])
-
-    datapoints = unrv_data(out[dataid])
-    pvals = unrv_data(out[pid])
-
-    labels = unrv_labels(out["LABELS"])
-    labels = [label[0,0] for label in labels]
-    labels[0] = "control"
-    yeast_data = datapoints[0]
-    sucrose_data = datapoints[1]
-    yeast_ps = pvals[0]
-    sucrose_ps = pvals[1]
-    numdtpoints = yeast_data.size-np.count_nonzero(~np.isnan(yeast_data))
-    Yout = {"Label": [], "Data": [], "Median": [], "Sign": []}
-    Sout = {"Label": [], "Data": [], "Median": [], "Sign": []}
-    for row in range(yeast_data.shape[0]):      # different datapoints same label
-        for col in range(yeast_data.shape[1]):      # different labels
-            if ~np.isnan(yeast_data[row, col]):
-                Yout["Label"].append(labels[col])
-                Yout["Data"].append(yeast_data[row, col])
-                Yout["Median"].append(np.nanmedian(yeast_data[:,col]))
-                Yout["Sign"].append("Yes" if math.log10(1./yeast_ps[col])>2 else "No")
-            if ~np.isnan(sucrose_data[row, col]):
-                Sout["Label"].append(labels[col])
-                Sout["Data"].append(sucrose_data[row, col])
-                Sout["Median"].append(np.nanmedian(sucrose_data[:,col]))
-                Sout["Sign"].append("Yes" if np.log10(1./sucrose_ps[col])>2 else "No")
-    Ydf = pd.DataFrame(Yout)
-    Sdf = pd.DataFrame(Sout)
-
-    Pvals = {}
-    for ind, label in enumerate(labels):
-        Pvals[label] = [yeast_ps[ind], sucrose_ps[ind]]
-    return [Ydf, Sdf], Pvals
-
-
-def swarmbox(_data, _x, _y, _pval, _ax):
-    #_ax = sns.stripplot(x=_x, y=_y, data=_data, color=".25", size=1.5,  jitter=0.05, ax=_ax)
-    _ax = sns.swarmplot(x=_x, y=_y, hue="Sign", data=_data, size=2, ax=_ax, palette=dict(Yes = 'r', No = 'k'))
-    _ax = sns.pointplot(x=_x, y=_y, data=_data, estimator=np.median, ci=None, join=False, color="0.5", markers="_", scale=0.75, ax=_ax)
-    #_ax = sns.violinplot(x=_x, y=_y, data=_data, inner=None, ax=_ax)
-    #pal = {_x: "r" if _data[_pval][i] == "Yes" else "k" for i, label in enumerate(_data[_x])}
-    _ax = sns.boxplot(x=_x, y=_y, data=_data, width=0.4, linewidth=0.5, showcaps=False,boxprops={'facecolor':'.85'}, showfliers=False,whiskerprops={'linewidth':0}, ax=_ax)
-    return _ax
-
-def unrv_data(_in):
-    return _in[0][0][0,]
-
-def unrv_labels(_in):
-    return _in[0][0][0]
+ids = [ #"Fano_Factor_of_inBurst_sips_durations",
+        "Median_IFI",
+        #"Fano_Factor_of_IFI",
+        #"Mode_IFI",
+        "Median_duration_of_inBurst_sips_durations",
+        #"Fano_Factor_of_sip_durations",
+        "Median_duration_of_sip_durations",
+        "Inverse_of_Median_duration_of_transition_IBI",
+        "Median_duration_of_feeding_burst_insider_IBI_",
+        "Inverse_of_Median_duration_of_feeding_burst_IBI",
+        "Median_duration_of_feeding_burst_Latency",
+        "total_duration_of_feeding_bursts",
+        "Median_nSips_per_feeding_bursts",
+        "Median_duration_of_feeding_bursts",
+        "Number_of_feeding_bursts_",
+        "Total_duration_of_activity_bouts",
+        "Median_duration_of_activity_bouts",
+        "Number_of_activity_bouts",
+        "Number_of_sips" ]
 
 def main():
-    ID = "Number of sips"
-    Substr = ["10% Yeast", "20 mM Sucrose"]
     Tk().withdraw()
-    _file = filedialog.askopenfilename(title='Choose file to load')
-    Df, pvals = h5_to_panda(_file, ID)
-    Df[0] = Df[0].sort_values("Median")
-    #Sdf = Sdf.sort_values("Median")
-    Df[1] = Df[1].reindex(Df[0].index)
-    Labels = [Df[0]["Label"].unique(), Df[1]["Label"].unique()]
-    plotpvals = [[pvals[label][0] for label in Labels[0]], [pvals[label][1] for label in Labels[1]]]
-    f, axes = plt.subplots(2, sharex=False, figsize=(18,10))
-    for i,ax in enumerate(axes):
-        ax = swarmbox(Df[i], "Label", "Data", np.log10(1./np.array(plotpvals[i])), ax)
-        ax2 = ax.twinx()
-        ax2.plot(np.log10(1./np.array(plotpvals[i])), 'k-', linewidth=0.5)
-        ax.set_xticklabels(Labels[i], rotation=60, ha='right')
-        ax.grid(which='major', axis='y', linestyle='--')
-        ax.tick_params(axis='both', direction='out', labelsize=9, pad=1)
-        ax.tick_params(axis='y', labelsize=10)
-        ax.set_ylabel(ID)
-        ax.set_title(Substr[i], fontsize=10, loc='left')
-    plt.suptitle("3d fresh food", fontsize=12, ha='right')
-    axes[0].set_ylim([0, 1600])
-    axes[1].set_ylim([0, 500])
-    axes[0].set_xlabel("")
-    plt.tight_layout()
-    print("Saving plot for", ID, "as:", os.path.dirname(_file)+os.sep+ID.replace(" ","_")+".png")
-    plt.savefig(os.path.dirname(_file)+os.sep+ID.replace(" ","_")+".png", dpi=600)
+    _files = filedialog.askopenfilenames(title='Choose file to load')
+    if "Jan" in _files[0]:
+        _lim = [[0, 12, 0, 12], [0, 1000, 0, 500]]
+    if "Feb" in _files[0]:
+        _lim = [[0, 20, 0, 20], [0, 6000, 0, 500]]
+    for each_id in ids:
+        if each_id == "Median_nSips_per_feeding_bursts":
+            pass
+            #plot_id(_file, each_id, _sort="S", lims= _lim[0])##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+            #plot_id(_file, each_id, lims= _lim[0])##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+        if each_id == "Number_of_sips":
+            plot_scatter(_files, each_id)
+            #plot_id(_file, each_id, _sort="S", lims= _lim[1])##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+            #plot_id(_file, each_id, lims= _lim[1])##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+        #else:
+        #    plot_id(_file, _cond, each_id)
+
+
 
 
 if __name__ == "__main__":
