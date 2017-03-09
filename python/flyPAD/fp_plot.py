@@ -23,6 +23,38 @@ def get_cond(_file):
         _cond = "8d deprived (sucrose water)"
     return _cond
 
+def get_conds(_file):
+    _effect = ""
+    if "KIR" in _file:
+        _effect = "Kir"
+    if "TrpA" in _file:
+        _effect = "TrpA"
+    if "Jan" in _file:
+        _c = "FF"
+    if "Feb" in _file:
+        _c = "8dD"
+    if "3600" in _file:
+        _len = "3600"
+    if "1800" in _file:
+        _len = "1800"
+    if "900" in _file:
+        _len = "900"
+    return _c+"_"+_effect+"_"+_len
+
+def get_data(_file, _id): ### TODO
+    frames = []
+    for ind, _file in enumerate(_files):
+        Df, pvals = h5_to_panda(_file, _id)
+        frames.append(Df)
+    return pd.concat(frames, keys=[get_conds(_file) for _file in _files])
+
+def get_data_files(_files, _id):### TODO
+    frames = []
+    for ind, _file in enumerate(_files):
+        Df, pvals = h5_to_panda(_file, _id)
+        frames.append(Df)
+    return pd.concat(frames, keys=[get_conds(_file) for _file in _files])
+
 def get_filename(_file, ID, _sort=""):
     _effect = ""
     if "KIR" in _file:
@@ -164,9 +196,12 @@ Plot scripts:
     * scatter plots (plot_scatter)
 """
 
-def plot_id(_file, _ID, _sort="Y", lims=[]):
+def plot_id(_file, _ID, _sort="Y", lims=[], _title=""):
     ID = _ID
-    title = _ID.replace("_", " ")
+    if _title == "":
+        title = _ID.replace("_", " ")
+    else:
+        title = _title
     Substr = ["10% Yeast", "20 mM Sucrose"]
     Df, pvals = h5_to_panda(_file, ID)
     if _sort == "Y":
@@ -217,7 +252,7 @@ def plot_pi(_file, _sort="Y"):
     Df, pvals = h5_to_panda(_file, ID)
 
     if _sort == "Y":
-        Df = Df.sort_values("Median")
+        Df = Df.sort_values("Median", ascending=True)
     else:
         Df = Df.sort_values("Median", ascending=False)
     Labels = Df["Label"].unique()
@@ -258,23 +293,43 @@ def plot_scatter(_files, _ID):
     Substr = ["10% Yeast", "20 mM Sucrose"]
     col = ["r", "g", "b"]
     f, ax = plt.subplots(figsize=(10,5))
-    control = [Df[0][Df[0]["Label"]=="control", Df[0][Df[0]["Label"]=="control"]
-    rest = [Df[0][Df[0]["Label"]!="control", Df[0][Df[0]["Label"]!="control"]
-    for ind, _file in enumerate(_files):
-        Df, pvals = h5_to_median(_file, ID)
-        ax.scatter(Df[0]["Data"], Df[1]["Data"], alpha=.4, s=5, c=col[ind])
-    ax.set_ylabel("#sips Sucrose")
-    ax.set_xlabel("#sips Yeast")
-    ax.set_xlim([0,6000])
-    ax.set_ylim([0,3000])
+
+    Df = h5multi_to_panda(_files, ID)
+    #for ind, _file in enumerate(_files):
+        #print(ind)
+    """
+        ax.scatter(control[0]["Data"], control[1]["Data"], s=5, c=col[ind])
+        ax.scatter(rest[0]["Data"], rest[1]["Data"], alpha=.4, s=5, c=col[ind])
+
+        if ind > 0:
+            g.x = Df[0].Data
+            g.y = Df[1].Data
+            g.plot_marginals(sns.distplot, color=col[ind], kde=False)
+            g.plot_joint(plt.scatter, color=col[ind], edgecolor=col[ind], s=1)
+        else:
+            g = sns.JointGrid(Df[0].Data, Df[1].Data)
+            g.x = Df[0].Data
+            g.y = Df[1].Data
+            g.plot_marginals(sns.distplot, color=col[ind], kde=False)
+            g.plot_joint(plt.scatter, color=col[ind], edgecolor=col[ind], s=1)
+
+    g.ax_marg_x.set_xscale('log')
+    g.ax_marg_y.set_yscale('log')
+    g.ax.set_ylabel("#sips Sucrose")
+    g.ax.set_xlabel("#sips Yeast")
+    ax.set_xscale("log")
+    ax.set_yscale("log")
     plt.tight_layout()
     #folder = os.path.dirname(_file)+os.sep+"plots"+os.sep
     folder = "/Users/degoldschmidt/Google Drive/PhD Project/Data/2017_01/Final plots/" ## MacOS fullpath
     fullfile = get_filename(_file, ID, _sort="scat")
     plt.savefig(folder+fullfile, dpi=300)
+    """
+    """
     ax.set_xlim([0,600])
     ax.set_ylim([0,300])
     plt.tight_layout()
     plt.savefig(folder+"ZOOM_"+fullfile, dpi=300)
+    """
     f.clf()
     plt.close()

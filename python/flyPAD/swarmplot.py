@@ -28,19 +28,40 @@ ids = [ #"Fano_Factor_of_inBurst_sips_durations",
 def main():
     Tk().withdraw()
     _files = filedialog.askopenfilenames(title='Choose file to load')
-    if "Jan" in _files[0]:
-        _lim = [[0, 12, 0, 12], [0, 1000, 0, 500]]
-    if "Feb" in _files[0]:
-        _lim = [[0, 20, 0, 20], [0, 6000, 0, 500]]
-    for each_id in ids:
-        if each_id == "Median_nSips_per_feeding_bursts":
-            pass
-            #plot_id(_file, each_id, _sort="S", lims= _lim[0])##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
-            #plot_id(_file, each_id, lims= _lim[0])##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
-        if each_id == "Number_of_sips":
-            plot_scatter(_files, each_id)
-            #plot_id(_file, each_id, _sort="S", lims= _lim[1])##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
-            #plot_id(_file, each_id, lims= _lim[1])##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+
+    #plot_scatter(_files, "Number_of_sips")
+
+    for _file in _files:
+        print(_file)
+        if "Jan" in _file:
+            _lim = [[0, 12, 0, 12], [0, 1000, 0, 500], [0,4,0,4]]
+        if "Feb" in _file:
+            _lim = [[0, 20, 0, 20], [0, 6000, 0, 500], [0,4,0,4]]
+        for each_id in ids:
+            """
+            if each_id == "Median_nSips_per_feeding_bursts":
+                plot_id(_file, each_id, _sort="S", lims= _lim[0], _title="Median #sips per FB")##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+                plot_id(_file, each_id, lims= _lim[0], _title="Median #sips per FB")##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+            """
+
+            #if each_id == "Number_of_sips":
+                #plot_pi(_file)
+                #plot_id(_file, each_id, _sort="S", lims= _lim[1])##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+                #plot_id(_file, each_id, lims= _lim[1])##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+
+            """
+            if each_id == "Inverse_of_Median_duration_of_feeding_burst_IBI":
+                plot_id(_file, each_id, _sort="S", _title="Median Freq. FB IBI")##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+                plot_id(_file, each_id, _title="Median Freq. FB IBI")##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+            """
+            """
+            if each_id == "Median_duration_of_feeding_bursts":
+                plot_id(_file, each_id, _sort="S", _title="Median Dur. FB IBI", lims=_lim[2])##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+                plot_id(_file, each_id, _title="Median Dur. FB IBI", lims=_lim[2])##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+            """
+            if each_id == "Total_duration_of_activity_bouts":
+                plot_id(_file, each_id, _sort="S", _title="Total Dur. AB")##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
+                plot_id(_file, each_id, _title="Total Dur. AB")##[0, 1600, 0, 500]) #[0, 6000, 0, 200]
         #else:
         #    plot_id(_file, _cond, each_id)
 
