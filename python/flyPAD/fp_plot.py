@@ -11,6 +11,20 @@ import seaborn as sns
 sns.set_style("ticks")
 sns.despine(left=True)
 
+import functools
+def conj(conditions, printit=False):
+    outstr = ""
+    for ind, cond in enumerate(conditions):
+        outstr +=  "Label == "
+        outstr += "'"
+        outstr += cond
+        outstr += "'"
+        if ind < len(conditions)-1:
+            outstr += " | "
+    if printit:
+        print(outstr)
+    return outstr
+
 """
 Helper functions
 """
@@ -55,7 +69,7 @@ def get_data_files(_files, _id):### TODO
         frames.append(Df)
     return pd.concat(frames, keys=[get_conds(_file) for _file in _files])
 
-def get_filename(_file, ID, _sort=""):
+def get_filename(_file, ID, _sort="", _suf=""):
     _effect = ""
     if "KIR" in _file:
         _effect = "Kir"
@@ -72,7 +86,7 @@ def get_filename(_file, ID, _sort=""):
     if "900" in _file:
         _len = "900"
     file_prefix = _c + "_" + _effect + "_" + _len
-    return file_prefix+_sort+"_"+ID+".png"
+    return file_prefix+_sort+"_"+ID+"_"+_suf+".png"
 
 def h5_to_panda(_file, _id):
     if _id == "PI":
@@ -196,14 +210,26 @@ Plot scripts:
     * scatter plots (plot_scatter)
 """
 
-def plot_id(_file, _ID, _sort="Y", lims=[], _title=""):
+def plot_id(_file, _ID, _sort="Y", lims=[], _title="", _only=[], _fsuff=""):
     ID = _ID
     if _title == "":
         title = _ID.replace("_", " ")
     else:
         title = _title
+    supptitle = get_cond(_file)
     Substr = ["10% Yeast", "20 mM Sucrose"]
     Df, pvals = h5_to_panda(_file, ID)
+    fwid = 10
+    if len(_only) > 0:
+        Df[0] = Df[0].query(conj(_only))
+        Df[1] = Df[1].query(conj(_only))
+        if len(_only) > 15:
+            fwid *= len(_only)/50
+        else:
+            fwid *= len(_only)/30
+        supptitle= ""
+
+
     if _sort == "Y":
         Df[0] = Df[0].sort_values("Median")
         Df[1] = Df[1].reindex(Df[0].index)
@@ -218,7 +244,7 @@ def plot_id(_file, _ID, _sort="Y", lims=[], _title=""):
                     print(j, labl, type(labl))
                     Labels[j] = np.delete(Labels[j], i)
     plotpvals = [[pvals[label][0] for label in Labels[0]], [pvals[label][1] for label in Labels[1]]]
-    f, axes = plt.subplots(2, sharex=False, figsize=(10,5))
+    f, axes = plt.subplots(2, sharex=False, figsize=(fwid,5))
     for i,ax in enumerate(axes):
         ax = swarmbox(Df[i], "Label", "Data", np.log10(1./np.array(plotpvals[i])), ax)
         ax2 = ax.twinx()
@@ -232,7 +258,7 @@ def plot_id(_file, _ID, _sort="Y", lims=[], _title=""):
         ax.set_ylabel(title)
         ax.set_title(Substr[i], fontsize=12, loc='left', fontweight='bold')
         ax.legend(loc='upper left', title=" p < 0.01", labelspacing=0.25, handletextpad=-0.2, borderpad=0.,fontsize=8)
-    plt.suptitle(get_cond(_file), fontsize=12)
+    plt.suptitle(supptitle, fontsize=12)
     if len(lims)>1:
         axes[0].set_ylim([lims[0], lims[1]])
     if len(lims)>3:
@@ -240,7 +266,7 @@ def plot_id(_file, _ID, _sort="Y", lims=[], _title=""):
     plt.tight_layout()
     #folder = os.path.dirname(_file)+os.sep+"plots"+os.sep
     folder = "/Users/degoldschmidt/Google Drive/PhD Project/Data/2017_01/Final plots/" ## MacOS fullpath
-    fullfile = get_filename(_file, ID, _sort)
+    fullfile = get_filename(_file, ID, _sort,_suf=_fsuff)
     print("Saving plot for", title, "as:", folder+fullfile)
     plt.savefig(folder+fullfile, dpi=300)
     plt.clf()
