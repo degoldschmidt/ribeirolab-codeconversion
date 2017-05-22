@@ -1,0 +1,94 @@
+Stock number,Old,New,QID,Comments,X,Row,Pos,Tray ID,Room,Date,Next,STATUS,QR
+JRC_SS00730,DN003b,A2,27,,o,1,A1,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS00731,DN003a,A1,28,,o,1,B1,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS00732,DN010,G24,29,,o,1,C1,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS00923,DN111,G26,111,Same as DN138??,o,1,D1,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01046,DN010,G24,8,,o,1,E1,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01052,DN066,G25,10,,o,1,F1,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01053,DN133,P2,11,,o,1,G1,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01054,DN019,G30,12,,o,1,H1,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01061,DN138,G26,19,Same as DN111??,o,1,I1,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01063,DN052,G28,20,KS,o,1,J1,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01073,DN045,G2,22,,o,2,A2,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01075,DN140,G29,24,,o,2,B2,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01077,DN019,G30,15,,o,2,C2,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01543,DN158,G16,83,stochastic,o,2,D2,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01545,DN047a,D2,61,,o,2,E2,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01547,DN132,G10,103,,o,2,F2,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01549,DN105,P13,157,with DN144,o,2,G2,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01550,DN162,G11,125,,o,2,H2,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01554,DN133,P2,53,,o,2,I2,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01557,DN114,G27,70,,o,2,J2,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01558,DN138,G26,146,,o,3,A3,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01561,DN045,G2,68,,o,3,B3,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01564,DN052,G28,-,some AS,o,3,C3,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01565,DN036,G13,59,-like; tectulum INs,o,3,D3,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01566,DN162,G11,156,,o,3,E3,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01567,DN011,G13,55,stochastic,o,3,F3,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01569,DN047a/b,D2; 3,81,,o,3,G3,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01570,DN047a/b,D2; 3,75,,o,3,H3,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01575,DN047a,D2,71,,o,3,I3,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01576,DN047a/b,D2; 3,74,,o,3,J3,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01579,DN162,G11,63,Rubin,o,4,A4,1,Main,9-Jan-2017,8-Feb-2017,new,link
+JRC_SS01581,DN105,P13,66,,o,4,B4,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01587,DN115,P28,80,,o,4,C4,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01588,DN019,G30,77,interneurons connecting leg neuromeres; weak,o,4,D4,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01593,DN138,G26,54,,o,4,E4,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01597,DN090a,G7,108,,o,4,F4,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS01602,DN009,G25,56,,o,4,G4,1,Main,8-Jan-2017,7-Feb-2017,few,link
+JRC_SS02111,DN132,G10,91,,o,4,H4,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02257,DN111,G26,87,,o,4,I4,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02259,DN011,G13,34,Same as DN036??,o,4,J4,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02275,DN036,G13,102,Same as DN011??; weak in LO,o,5,A5,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02278,DN132,G10,122,,o,5,B5,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02279,DN165,G17,37,,o,5,C5,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02285,DN036,G13,36,x5,o,5,D5,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02310,DN003b,A2,41,,o,5,E5,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02316,DN019,G30,86,one side,o,5,F5,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02324,DN090a,G7,123,,o,5,G5,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02378,DN019,G30,33,no BG,o,5,H5,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02384,DN170,A4/A10,168,,o,5,I5,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02388,DN019,G30,44,no BG,o,5,J5,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02391,DN162,G11,88,,o,6,A6,1,Main,9-Jan-2017,8-Feb-2017,new,link
+JRC_SS02394,DN004,P32,118,,o,6,B6,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02538,DN036,G13,115,,o,6,C6,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02547,DN090a,G7,94,,o,6,D6,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02554,DN090a,G7,95,,o,6,E6,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02608,DN174,G12,104,,o,6,F6,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02609,DN174,G12,147,,o,6,G6,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02617,DN162,G11,101,,o,6,H6,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02618,DN115,P28,106,,o,6,I6,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02624,DN045,G2,128,SLP,o,6,J6,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02625,DN045,G2,116,T1; weak,o,7,A7,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02634,DN045,G2,112,x2 pairs,o,7,B7,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS02635,"DN090a,b","G7,8",113,,o,7,C7,1,Main,9-Jan-2017,8-Feb-2017,new,link
+JRC_SS04158,DN125,G14,1,,o,7,D7,1,Main,9-Jan-2017,8-Feb-2017,new,link
+JRC_SS04159,DN140,G29,2,,o,7,E7,1,Main,8-Jan-2017,7-Feb-2017,new,link
+JRC_SS00898,DN165,G17,,CCU dead,x,,,,,,,,
+JRC_SS01059,DN066,G25,,CCU dead,x,,,,,,,,
+JRC_SS01064,DN138,G26,,in hospital,x,,,,,,,,
+JRC_SS01069,DN125,G14,,in hospital,x,,,,,,,,
+JRC_SS01074,DN090a,G7,,in hospital,x,,,,,,,,
+JRC_SS01604,DN090a,G7,,not @ CCU,x,,,,,,,,
+JRC_SS02377,DN139,G15,,CCU dead,x,,,,,,,,
+,DN021,,,Not in list,x,,,,,,,,
+,DN034,,,Not in list,x,,,,,,,,
+,DN059,,,Not in list,x,,,,,,,,
+,DN085,,,Not in list,x,,,,,,,,
+,DN090c,,,Not in list,x,,,,,,,,
+,DN099,,,Not in list,x,,,,,,,,
+,DN144,,,Not in list,x,,,,,,,,
+,DN145,,,Not in list,x,,,,,,,,
+,DN156,,,Not in list,x,,,,,,,,
+,DN159,,,Not in list,x,,,,,,,,
+,DN160,,,Not in list,x,,,,,,,,
+,DN161,,,Not in list,x,,,,,,,,
+,DN167,,,Not in list,x,,,,,,,,
+,DN171,,,Not in list,x,,,,,,,,
+,DN175,,,Not in list,x,,,,,,,,
+,DN179,,,Not in list,x,,,,,,,,
+,DN182,,,Not in list,x,,,,,,,,
+,DN183,,,Not in list,x,,,,,,,,
+,DN185,,,Not in list,x,,,,,,,,
+,DN187,,,Not in list,x,,,,,,,,
+,DN190,,,Not in list,x,,,,,,,,
