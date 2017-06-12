@@ -132,7 +132,6 @@ class FlyLogger(ttk.Frame):
     def _column_sort(self, col, descending=False):
 
         # grab values to sort as a list of tuples (column value, column id)
-        # e.g. [('Argentina', 'I001'), ('Australia', 'I002'), ('Brazil', 'I003')]
         data = [(self.tree.set(child, col), child) for child in self.tree.get_children('')]
 
         # reorder data
