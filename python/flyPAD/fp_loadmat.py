@@ -9,47 +9,107 @@ import numpy as np
 import pandas as pd
 import pprint
 
+def get_conds(_file):
+    effector = ""
+    internal = ""
+    onlyfile = os.path.basename(_file)
+    if "KIR" in _file:
+        effector = "Kir"
+    if "TrpA" in _file:
+        effector = "TrpA"
+    if onlyfile.startswith("01_"):
+        internal = "FF"
+    if onlyfile.startswith("03_"):
+        internal = "8dD"
+    if "3600" in _file:
+        _len = "3600"
+    if "1800" in _file:
+        _len = "1800"
+    if "900" in _file:
+        _len = "900"
+    return effector, internal, _len
+
 def print_attrs(name, obj):
     print(name)
     for key, val in obj.attrs.iteritems():
         print("{:s} {:s}".format(key, val))
 
-def unrv_data(_in):
-    return _in[0][0][0,]
+def unrv_data(_in, multic=False):
+    if multic:
+        out = []
+        for condsdata in _in[0]:
+            out.append([])
+            for substrd in condsdata[0,]:
+                out[-1].append(np.array(substrd))
+        return out
+    else:
+        return _in[0][0][0,]
 
-def unrv_labels(_in):
+def unrv_labels(_in, multic=False):
     #return _in[0][0][0]
-    return [ val[0,0] for val in _in[0][0][0] ]
+    if multic:
+        out = []
+        for condlabels in _in[0]:
+            for label in condlabels:
+                out.append([labs[0,0] for labs in label])
+        return out
+    else:
+        return [ val[0,0] for val in _in[0][0][0] ]
 
-def h5_to_panda(_file, _ids):
+def h5_to_panda(_file, _ids, _multic=False):
     ### GO THROUGH ALL IDS
-    Out = {"Data": [], "Id": [], "Label": [], "Median": [], "pVal": [], "Signif": [], "Substr": []}
+    thiseff, thisinternal, thislength = get_conds(_file)
+    Out = {"Data": [], "Effector": [], "Id": [], "Internal": [], "Label": [], "Length": [], "Median": [], "pVal": [], "Signif": [], "Substr": [], "Temp": []}
     for thisid in _ids:
-        print(thisid)
         dataid = "data2/" + thisid
         pid = "PVALS/" + thisid
         ### LOAD MAT FILE
         raw_hdf5 = hdf5storage.loadmat(_file, variable_names=[dataid, pid, "LABELS"])
 
         ### UNRAVEL DATA
-        datapoints = unrv_data(raw_hdf5[dataid])
-        pvals = unrv_data(raw_hdf5[pid])
-        labels = unrv_labels(raw_hdf5["LABELS"])
+        datapoints = unrv_data(raw_hdf5[dataid], multic=_multic)
+        pvals = unrv_data(raw_hdf5[pid], multic=_multic)
+        labels = unrv_labels(raw_hdf5["LABELS"], multic=_multic)
+
+        """
+        for id1, conds in enumerate(["22C", "30C"]):
+            print("Temp.:", conds)
+            print("Labels:", labels[id1], "({:d})".format(len(labels[id1])))
+            for id2, subtrs in enumerate(["yeast", "sucrose"]):
+                print("Substrate:", subtrs)
+                print("Datapoints dims:", datapoints[id1][id2].shape)
+                print("pVals dims:", pvals[id1][id2].shape)
+        """
 
         ### WRITE ALL DATA INTO DICT FOR PANDAS DATAFRAME
-        for idx, substr in enumerate(["yeast", "sucrose"]):
-            thisdata = datapoints[idx]
-            thisp = pvals[idx]
-            for row in range(thisdata.shape[0]):      # different datapoints same label
-                for col in range(thisdata.shape[1]):      # different labels
-                    if ~np.isnan(thisdata[row, col]):
-                        Out["Label"].append(labels[col])
-                        Out["Data"].append(thisdata[row, col])
-                        Out["Id"].append(thisid)
-                        Out["Median"].append(np.nanmedian(thisdata[:,col]))
-                        Out["pVal"].append(thisp[col][0])
-                        Out["Signif"].append("yes" if math.log10(1./thisp[col])>2 else "no")
-                        Out["Substr"].append(substr)
+        if _multic:
+            temps = [22, 30]
+        else:
+            temps = [30]
+        for id1, temp in enumerate(temps):
+            for id2, substr in enumerate(["yeast", "sucrose"]):
+                if _multic:
+                    thisdata = datapoints[id1][id2]
+                    thisp = pvals[id1][id2]
+                    thislabels = labels[id1]
+                else:
+                    thisdata = datapoints[id2]
+                    thisp = pvals[id2]
+                    thislabels = labels
+                for row in range(thisdata.shape[0]):      # different datapoints same label
+                    for col in range(thisdata.shape[1]):      # different labels
+                        if ~np.isnan(thisdata[row, col]):
+                            Out["Label"].append(thislabels[col])
+                            Out["Data"].append(thisdata[row, col])
+                            Out["Effector"].append(thiseff)
+                            Out["Id"].append(thisid)
+                            Out["Internal"].append(thisinternal)
+                            Out["Length"].append(thislength)
+                            Out["Median"].append(np.nanmedian(thisdata[:,col]))
+                            Out["pVal"].append(thisp[col][0])
+                            Out["Signif"].append("yes" if math.log10(1./thisp[col])>2 else "no")
+                            Out["Substr"].append(substr)
+                            Out["Temp"].append(temp)
 
     return pd.DataFrame(Out)
 
@@ -77,9 +137,22 @@ def main():
             "Number_of_activity_bouts",
             "Number_of_sips" ]
 
+    dfs = []
     for _file in _files:
-        df = h5_to_panda(_file, _ids)
-        print(df)
+        print(_file)
+        if "Apr" in _file:
+            mult = True
+        else:
+            mult = False
+        df = h5_to_panda(_file, _ids, _multic=mult)
+        dfs.append(df)
+    outdf = pd.concat(dfs)
+    print(outdf)
+
+    save_file = filedialog.asksaveasfilename(defaultextension='.csv', title='Choose filename to save',
+                                                    filetypes=[("Comma-separated values","*.csv"),
+                                                      ("All files","*.*")])
+    outdf.to_csv(save_file, sep='\t', encoding='utf-8')
 
 if __name__ == "__main__":
     startdt = now()
