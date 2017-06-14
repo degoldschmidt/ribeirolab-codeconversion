@@ -23,7 +23,9 @@ def unrv_labels(_in):
 
 def h5_to_panda(_file, _ids):
     ### GO THROUGH ALL IDS
+    Out = {"Data": [], "Id": [], "Label": [], "Median": [], "pVal": [], "Signif": [], "Substr": []}
     for thisid in _ids:
+        print(thisid)
         dataid = "data2/" + thisid
         pid = "PVALS/" + thisid
         ### LOAD MAT FILE
@@ -35,7 +37,6 @@ def h5_to_panda(_file, _ids):
         labels = unrv_labels(raw_hdf5["LABELS"])
 
         ### WRITE ALL DATA INTO DICT FOR PANDAS DATAFRAME
-        Out = {"Data": [], "Id": [], "Label": [], "Median": [], "pVal": [], "Signif": [], "Substr": []}
         for idx, substr in enumerate(["yeast", "sucrose"]):
             thisdata = datapoints[idx]
             thisp = pvals[idx]
@@ -55,10 +56,30 @@ def h5_to_panda(_file, _ids):
 def main():
     Tk().withdraw()
     _files = filedialog.askopenfilenames(title='Choose file to load')
-    _ids = ["Number_of_sips"]
+    _ids = [ #"Fano_Factor_of_inBurst_sips_durations",
+            "Median_IFI",
+            #"Fano_Factor_of_IFI",
+            #"Mode_IFI",
+            "Median_duration_of_inBurst_sips_durations",
+            #"Fano_Factor_of_sip_durations",
+            "Median_duration_of_sip_durations",
+            "Inverse_of_Median_duration_of_transition_IBI",
+            "Median_duration_of_feeding_burst_insider_IBI_",
+            "Inverse_of_Median_duration_of_feeding_burst_IBI",
+            "Median_duration_of_feeding_burst_Latency",
+            "total_duration_of_feeding_bursts",
+            "Median_nSips_per_feeding_bursts",
+            "Median_duration_of_feeding_bursts",
+            "Number_of_feeding_bursts_",
+            "Total_duration_of_activity_bouts",
+            "Median_duration_of_activity_bouts",
+            "Inverse_of_Median_duration_of_activity_bout_IBI",
+            "Number_of_activity_bouts",
+            "Number_of_sips" ]
 
     for _file in _files:
         df = h5_to_panda(_file, _ids)
+        print(df)
 
 if __name__ == "__main__":
     startdt = now()
