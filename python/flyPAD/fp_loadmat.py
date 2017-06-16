@@ -38,52 +38,28 @@ def print_attrs(name, obj):
     for key, val in obj.attrs.iteritems():
         print("{:s} {:s}".format(key, val))
 
-def unrv_data(_in, multic=False):
-    if multic:
-        out = []
-        for condsdata in _in[0]:
-            out.append([])
-            for substrd in condsdata[0,]:
-                out[-1].append(np.array(substrd))
-        return out
-    else:
-        return _in[0][0][0,]
+def unrv_data(_in):
+    return _in[0][0][0,]
 
-def unrv_labels(_in, multic=False):
+def unrv_labels(_in):
     #return _in[0][0][0]
-    if multic:
-        out = []
-        for condlabels in _in[0]:
-            for label in condlabels:
-                out.append([labs[0,0] for labs in label])
-        return out
-    else:
-        return [ val[0,0] for val in _in[0][0][0] ]
+    return [ val[0,0] for val in _in[0][0][0] ]
 
-def h5_to_panda(_file, _ids, _multic=False):
-    ### GO THROUGH ALL IDS
+def h5_to_panda(_file, _ids):
     thisdate, thiseff, thisinternal, thislength = get_conds(_file)
     Out = {"Date": [], "DataY": [], "DataS": [], "Effector": [], "Id": [], "Internal": [], "Label": [], "Length": [], "MedianY": [], "MedianS": [], "pValY": [], "pValS": [], "SignifY": [], "SignifS": [], "Temp": []}
+    ### GO THROUGH ALL IDS
     for thisid in _ids:
+        print(thisid)
         dataid = "data2/" + thisid
         pid = "PVALS/" + thisid
         ### LOAD MAT FILE
         raw_hdf5 = hdf5storage.loadmat(_file, variable_names=[dataid, pid, "LABELS"])
 
         ### UNRAVEL DATA
-        datapoints = unrv_data(raw_hdf5[dataid], multic=_multic)
-        pvals = unrv_data(raw_hdf5[pid], multic=_multic)
-        labels = unrv_labels(raw_hdf5["LABELS"], multic=_multic)
-
-        """
-        for id1, conds in enumerate(["22C", "30C"]):
-            print("Temp.:", conds)
-            print("Labels:", labels[id1], "({:d})".format(len(labels[id1])))
-            for id2, subtrs in enumerate(["yeast", "sucrose"]):
-                print("Substrate:", subtrs)
-                print("Datapoints dims:", datapoints[id1][id2].shape)
-                print("pVals dims:", pvals[id1][id2].shape)
-        """
+        datapoints = unrv_data(raw_hdf5[dataid])
+        pvals = unrv_data(raw_hdf5[pid])
+        labels = unrv_labels(raw_hdf5["LABELS"])
 
         ### WRITE ALL DATA INTO DICT FOR PANDAS DATAFRAME
         if _multic:
