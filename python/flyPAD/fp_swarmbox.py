@@ -1,8 +1,12 @@
+import matplotlib
+matplotlib.use("TkAgg")
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
 sns.set_style("ticks")
 sns.despine(left=True)
 
-import functools
 def conj(conditions, printit=False):
     outstr = ""
     for ind, cond in enumerate(conditions):
@@ -16,43 +20,55 @@ def conj(conditions, printit=False):
         print(outstr)
     return outstr
 
-def swarmbox(_data, _x, _y, _pval, _ax, ps=2, hueon=False):
+def swarmbox( _ax, _data, _x, _y, _pval, _s, ps=2, hueon=False):
     if hueon:
-        un_med = [ _data[_data["Label"]==label]["Median"].unique()[0] for label in _data["Label"].unique()]
+        un_med = [ _data[_data["Label"]==label]["Median"+_s].unique()[0] for label in _data["Label"].unique()]
         pal = sns.diverging_palette(240, 10, s=99, n=201)
         pal = [pal[int(100*(med+1))] for med in un_med]
         _ax = sns.boxplot(x=_x, y=_y, palette=pal, data=_data, width=0.4, linewidth=0.5, showcaps=False, showfliers=False,whiskerprops={'linewidth':0}, ax=_ax)
     else:
         _ax = sns.boxplot(x=_x, y=_y, data=_data, width=0.4, linewidth=0.5, showcaps=False,boxprops={'facecolor':'.85'}, showfliers=False,whiskerprops={'linewidth':0}, ax=_ax)
-    _ax = sns.swarmplot(x=_x, y=_y, hue="Signif", data=_data, size=ps, ax=_ax, palette=dict(Yes = 'r', No = 'k'))
+    _ax = sns.swarmplot(x=_x, y=_y, hue="Signif"+_s, data=_data, size=ps, ax=_ax, palette=dict(yes = 'r', no = 'k'))
     _ax = sns.pointplot(x=_x, y=_y, data=_data, estimator=np.median, ci=None, join=False, color="0.5", markers="_", scale=0.75, ax=_ax)
     return _ax
 
-def screenplot(_axes, _dataframe, _ID, _sort="Y", _title="", _labels=[], _fsuff=""):
+def screenplot(_axes, _dataframe, _ID, _date, _sort="Y", _title="", _labels=[], _fsuff=""):
     Substr = ["10% Yeast", "20 mM Sucrose"]
-    Substr = ["Y", "S"]
+    sr = ["Y", "S"]
+    if _title == "":
+        title = _ID.replace("_", " ")
+    else:
+        title = _title
 
-    Df = _dataframe.query(conj(_labels))
+
+    Df = _dataframe.query("Id == '" + _ID + "'")
+    Df = Df.query("Date == " +_date)
+    if len(_labels) > 0:
+        Df = Df.query(conj(_labels))
 
     if _sort == "Y":
-        Df = Df.sort_values("Median")
+        Df = Df.sort_values("MedianY")
     else:
         Df = Df.sort_values("MedianS")
 
     for i, ax in enumerate(_axes):
-        ax = swarmbox(Df, "Label", "DataY", np.log10(1./np.array(plotpvals[i])), ax)
+        s = sr[i]
+        Labels = Df["Label"].unique()
+        pVals = np.array( [ Df[Df.Label == label]["pVal"+s].unique()[0] for label in Labels ] )
+        ax = swarmbox(ax, Df, "Label", "Data"+s, np.log10(1./np.array(pVals[i])), s)
         ax2 = ax.twinx()
-        ax2.plot(np.log10(1./np.array(plotpvals[i])), 'k-', linewidth=0.5)
-        ax.set_xticklabels(Labels[i], rotation=60, ha='right')
+        ax2.plot(np.log10(1./pVals), 'k-', linewidth=0.5)
+        ax.set_xticklabels(Labels, rotation=60, ha='right')
         ax.grid(which='major', axis='y', linestyle='--')
         ax.tick_params(axis='both', direction='out', labelsize=9, pad=1)
         ax.tick_params(axis='y', labelsize=10)
-        [lab.set_color("red") for j, lab in enumerate(ax.get_xticklabels()) if np.log10(1./np.array(plotpvals[i][j])) > 2.]
-        ax.set_xlabel("JRC SplitGal4 Label", fontsize=8, fontweight='bold')
+        [lab.set_color("red") for j, lab in enumerate(ax.get_xticklabels()) if np.log10(1./np.array(pVals[j])) > 2.]
+        ax.set_xlabel("Split-Gal4 Label", fontsize=8, fontweight='bold')
         ax.set_ylabel(title)
         ax.set_title(Substr[i], fontsize=12, loc='left', fontweight='bold')
         ax.legend(loc='upper left', title=" p < 0.01", labelspacing=0.25, handletextpad=-0.2, borderpad=0.,fontsize=8)
 
+    return _axes
 
     """
     ID = _ID

@@ -7,7 +7,10 @@ import hdf5storage
 import h5py
 import numpy as np
 import pandas as pd
-import pprint
+from fp_swarmbox import screenplot
+import matplotlib
+matplotlib.use("TkAgg")
+import matplotlib.pyplot as plt
 
 def get_conds(_file):
     effector = ""
@@ -15,11 +18,11 @@ def get_conds(_file):
     onlyfile = os.path.basename(_file)
     if "KIR" in _file:
         effector = "Kir"
-    if "TrpA" in _file:
+    if "Trp" in _file:
         effector = "TrpA"
-    if onlyfile.startswith("01_"):
+    if onlyfile[7:].startswith("01_"):
         internal = "FF"
-    if onlyfile.startswith("03_"):
+    if onlyfile[7:].startswith("03_"):
         internal = "8dD"
     if "3600" in _file:
         _len = "3600"
@@ -27,7 +30,8 @@ def get_conds(_file):
         _len = "1800"
     if "900" in _file:
         _len = "900"
-    return effector, internal, _len
+    date = onlyfile[0:6]
+    return date, effector, internal, _len
 
 def print_attrs(name, obj):
     print(name)
@@ -58,8 +62,8 @@ def unrv_labels(_in, multic=False):
 
 def h5_to_panda(_file, _ids, _multic=False):
     ### GO THROUGH ALL IDS
-    thiseff, thisinternal, thislength = get_conds(_file)
-    Out = {"Data": [], "Effector": [], "Id": [], "Internal": [], "Label": [], "Length": [], "Median": [], "pVal": [], "Signif": [], "Temp": []}
+    thisdate, thiseff, thisinternal, thislength = get_conds(_file)
+    Out = {"Date": [], "DataY": [], "DataS": [], "Effector": [], "Id": [], "Internal": [], "Label": [], "Length": [], "MedianY": [], "MedianS": [], "pValY": [], "pValS": [], "SignifY": [], "SignifS": [], "Temp": []}
     for thisid in _ids:
         dataid = "data2/" + thisid
         pid = "PVALS/" + thisid
@@ -100,68 +104,79 @@ def h5_to_panda(_file, _ids, _multic=False):
                 for row in range(thisdata[0].shape[0]):      # different datapoints; same label
                     if ~np.isnan(thisdata[0][row, col]) and ~np.isnan(thisdata[1][row, col]):
                         Out["Label"].append(thislabels[col])
-                        Out["Data"].append( (thisdata[0][row, col], thisdata[1][row, col]) )
+                        Out["Date"].append(thisdate)
+                        Out["DataY"].append(thisdata[0][row, col])
+                        Out["DataS"].append(thisdata[1][row, col])
                         Out["Effector"].append(thiseff)
                         Out["Id"].append(thisid)
                         Out["Internal"].append(thisinternal)
                         Out["Length"].append(thislength)
-                        Out["Median"].append( (np.nanmedian(thisdata[0][:,col]), np.nanmedian(thisdata[1][:,col])) )
-                        Out["pVal"].append( (thisp[0][col][0], thisp[1][col][0]) )
-                        Out["Signif"].append( ("yes" if math.log10(1./thisp[0][col])>2 else "no", "yes" if math.log10(1./thisp[1][col])>2 else "no") )
+                        Out["MedianY"].append(np.nanmedian(thisdata[0][:,col]))
+                        Out["MedianS"].append(np.nanmedian(thisdata[1][:,col]))
+                        Out["pValY"].append(thisp[0][col][0])
+                        Out["pValS"].append(thisp[1][col][0])
+                        Out["SignifY"].append("yes" if math.log10(1./thisp[0][col])>2 else "no")
+                        Out["SignifS"].append("yes" if math.log10(1./thisp[1][col])>2 else "no")
                         Out["Temp"].append(temp)
 
     return pd.DataFrame(Out)
 
 def main():
     Tk().withdraw()
-    _files = filedialog.askopenfilenames(title='Choose file to load')
-    _ids = [ #"Fano_Factor_of_inBurst_sips_durations",
-            "Median_IFI",
-            #"Fano_Factor_of_IFI",
-            #"Mode_IFI",
-            "Median_duration_of_inBurst_sips_durations",
-            #"Fano_Factor_of_sip_durations",
-            "Median_duration_of_sip_durations",
-            "Inverse_of_Median_duration_of_transition_IBI",
-            "Median_duration_of_feeding_burst_insider_IBI_",
-            "Inverse_of_Median_duration_of_feeding_burst_IBI",
-            "Median_duration_of_feeding_burst_Latency",
-            "total_duration_of_feeding_bursts",
-            "Median_nSips_per_feeding_bursts",
-            "Median_duration_of_feeding_bursts",
-            "Number_of_feeding_bursts_",
-            "Total_duration_of_activity_bouts",
-            "Median_duration_of_activity_bouts",
-            "Inverse_of_Median_duration_of_activity_bout_IBI",
-            "Number_of_activity_bouts",
-            "Number_of_sips" ]
+    askload = messagebox.askquestion("Load dataframe", "Wanna load some dataframe?", icon='warning')
+    if askload == 'yes':
+        _file = filedialog.askopenfilename(title='Choose file to load')
+        DATA = pd.read_csv(_file, sep='\t', encoding='utf-8')
+        #DATA = DATA.query("Id == 'Number_of_sips'")
+        #DATA = DATA.query("Date == 170109")
+        #DATA = DATA.sort_values("MedianY")
+        f, axes = plt.subplots(2, sharex=False, figsize=(10,5))
+        axes = screenplot(axes, DATA, "Number_of_sips", "170109")
+        plt.tight_layout()
+        plt.show()
+    else:
+        _files = filedialog.askopenfilenames(title='Choose file/s to load')
+        _ids = [ #"Fano_Factor_of_inBurst_sips_durations",
+                "Median_IFI",
+                #"Fano_Factor_of_IFI",
+                #"Mode_IFI",
+                "Median_duration_of_inBurst_sips_durations",
+                #"Fano_Factor_of_sip_durations",
+                "Median_duration_of_sip_durations",
+                "Inverse_of_Median_duration_of_transition_IBI",
+                "Median_duration_of_feeding_burst_insider_IBI_",
+                "Inverse_of_Median_duration_of_feeding_burst_IBI",
+                "Median_duration_of_feeding_burst_Latency",
+                "total_duration_of_feeding_bursts",
+                "Median_nSips_per_feeding_bursts",
+                "Median_duration_of_feeding_bursts",
+                "Number_of_feeding_bursts_",
+                "Total_duration_of_activity_bouts",
+                "Median_duration_of_activity_bouts",
+                "Inverse_of_Median_duration_of_activity_bout_IBI",
+                "Number_of_activity_bouts",
+                "Number_of_sips" ]
 
-    dfs = []
-    for _file in _files:
-        print(_file)
-        if "Apr" in _file:
-            mult = True
-        else:
-            mult = False
-        df = h5_to_panda(_file, _ids, _multic=mult)
-        dfs.append(df)
-    outdf = pd.concat(dfs)
-    print(outdf)
-    asksave = messagebox.askquestion("Saving data", "Do you want to save dataframe into file?", icon='warning')
-    if asksave == 'yes':
-        save_file = filedialog.asksaveasfilename(defaultextension='.csv', title='Choose filename to save',
-                                                        filetypes=[("Comma-separated values","*.csv"),
-                                                          ("All files","*.*")])
-        outdf.to_csv(save_file, sep='\t', encoding='utf-8')
+        dfs = []
+        for _file in _files:
+            print(_file)
+            if "Apr" in _file:
+                mult = True
+            else:
+                mult = False
+            df = h5_to_panda(_file, _ids, _multic=mult)
+            dfs.append(df)
+        outdf = pd.concat(dfs, ignore_index=True)
+        print(outdf)
+        asksave = messagebox.askquestion("Saving data", "Do you want to save dataframe into file?", icon='warning')
+        if asksave == 'yes':
+            save_file = filedialog.asksaveasfilename(defaultextension='.csv', title='Choose filename to save',
+                                                            filetypes=[("Comma-separated values","*.csv"),
+                                                              ("All files","*.*")])
+            outdf.to_csv(save_file, sep='\t', encoding='utf-8')
+
 
 if __name__ == "__main__":
     startdt = now()
-    #main()
-    sampledict = {"First": [], "Second": []}
-    sampledict["First"].append(1234)
-    sampledict["Second"].append( np.array([1,4]) )
-    sampledict["First"].append(5678)
-    sampledict["Second"].append( np.array([3,2]) )
-    sampledf = pd.DataFrame(sampledict)
-    print( sampledf.sort_values("First") )
+    main()
     print("Done. Runtime:", strfdelta(now() - startdt, "%H:%M:%S"))
