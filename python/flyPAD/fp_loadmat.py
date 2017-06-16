@@ -59,7 +59,7 @@ def unrv_labels(_in, multic=False):
 def h5_to_panda(_file, _ids, _multic=False):
     ### GO THROUGH ALL IDS
     thiseff, thisinternal, thislength = get_conds(_file)
-    Out = {"Data": [], "Effector": [], "Id": [], "Internal": [], "Label": [], "Length": [], "Median": [], "pVal": [], "Signif": [], "Substr": [], "Temp": []}
+    Out = {"Data": [], "Effector": [], "Id": [], "Internal": [], "Label": [], "Length": [], "Median": [], "pVal": [], "Signif": [], "Temp": []}
     for thisid in _ids:
         dataid = "data2/" + thisid
         pid = "PVALS/" + thisid
@@ -83,33 +83,32 @@ def h5_to_panda(_file, _ids, _multic=False):
 
         ### WRITE ALL DATA INTO DICT FOR PANDAS DATAFRAME
         if _multic:
-            temps = [22, 30]
+            temps = ["22ºC", "30ºC"]
         else:
-            temps = [30]
+            temps = ["30ºC"]
         for id1, temp in enumerate(temps):
-            for id2, substr in enumerate(["yeast", "sucrose"]):
-                if _multic:
-                    thisdata = datapoints[id1][id2]
-                    thisp = pvals[id1][id2]
-                    thislabels = labels[id1]
-                else:
-                    thisdata = datapoints[id2]
-                    thisp = pvals[id2]
-                    thislabels = labels
-                for row in range(thisdata.shape[0]):      # different datapoints same label
-                    for col in range(thisdata.shape[1]):      # different labels
-                        if ~np.isnan(thisdata[row, col]):
-                            Out["Label"].append(thislabels[col])
-                            Out["Data"].append(thisdata[row, col])
-                            Out["Effector"].append(thiseff)
-                            Out["Id"].append(thisid)
-                            Out["Internal"].append(thisinternal)
-                            Out["Length"].append(thislength)
-                            Out["Median"].append(np.nanmedian(thisdata[:,col]))
-                            Out["pVal"].append(thisp[col][0])
-                            Out["Signif"].append("yes" if math.log10(1./thisp[col])>2 else "no")
-                            Out["Substr"].append(substr)
-                            Out["Temp"].append(temp)
+            if _multic:
+                thisdata = datapoints[id1]
+                thisp = pvals[id1]
+                thislabels = labels[id1]
+            else:
+                thisdata = datapoints
+                thisp = pvals
+                thislabels = labels
+
+            for col in range(thisdata[0].shape[1]):      # different labels
+                for row in range(thisdata[0].shape[0]):      # different datapoints; same label
+                    if ~np.isnan(thisdata[0][row, col]) and ~np.isnan(thisdata[1][row, col]):
+                        Out["Label"].append(thislabels[col])
+                        Out["Data"].append( (thisdata[0][row, col], thisdata[1][row, col]) )
+                        Out["Effector"].append(thiseff)
+                        Out["Id"].append(thisid)
+                        Out["Internal"].append(thisinternal)
+                        Out["Length"].append(thislength)
+                        Out["Median"].append( (np.nanmedian(thisdata[0][:,col]), np.nanmedian(thisdata[1][:,col])) )
+                        Out["pVal"].append( (thisp[0][col][0], thisp[1][col][0]) )
+                        Out["Signif"].append( ("yes" if math.log10(1./thisp[0][col])>2 else "no", "yes" if math.log10(1./thisp[1][col])>2 else "no") )
+                        Out["Temp"].append(temp)
 
     return pd.DataFrame(Out)
 
@@ -148,13 +147,21 @@ def main():
         dfs.append(df)
     outdf = pd.concat(dfs)
     print(outdf)
-
-    save_file = filedialog.asksaveasfilename(defaultextension='.csv', title='Choose filename to save',
-                                                    filetypes=[("Comma-separated values","*.csv"),
-                                                      ("All files","*.*")])
-    outdf.to_csv(save_file, sep='\t', encoding='utf-8')
+    asksave = messagebox.askquestion("Saving data", "Do you want to save dataframe into file?", icon='warning')
+    if asksave == 'yes':
+        save_file = filedialog.asksaveasfilename(defaultextension='.csv', title='Choose filename to save',
+                                                        filetypes=[("Comma-separated values","*.csv"),
+                                                          ("All files","*.*")])
+        outdf.to_csv(save_file, sep='\t', encoding='utf-8')
 
 if __name__ == "__main__":
     startdt = now()
-    main()
+    #main()
+    sampledict = {"First": [], "Second": []}
+    sampledict["First"].append(1234)
+    sampledict["Second"].append( np.array([1,4]) )
+    sampledict["First"].append(5678)
+    sampledict["Second"].append( np.array([3,2]) )
+    sampledf = pd.DataFrame(sampledict)
+    print( sampledf.sort_values("First") )
     print("Done. Runtime:", strfdelta(now() - startdt, "%H:%M:%S"))
