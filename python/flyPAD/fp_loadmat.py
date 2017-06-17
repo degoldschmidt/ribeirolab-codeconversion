@@ -1,16 +1,7 @@
-from helper import now, strfdelta
-from tkinter import *
-from tkinter import messagebox, filedialog
-from tkinter import ttk
-import os, math
 import hdf5storage
 import h5py
 import numpy as np
 import pandas as pd
-from fp_swarmbox import screenplot
-import matplotlib
-matplotlib.use("TkAgg")
-import matplotlib.pyplot as plt
 
 def get_conds(_file):
     effector = ""
@@ -96,63 +87,3 @@ def h5_to_panda(_file, _ids):
                         Out["Temp"].append(temp)
 
     return pd.DataFrame(Out)
-
-def main():
-    Tk().withdraw()
-    askload = messagebox.askquestion("Load dataframe", "Wanna load some dataframe?", icon='warning')
-    if askload == 'yes':
-        _file = filedialog.askopenfilename(title='Choose file to load')
-        DATA = pd.read_csv(_file, sep='\t', encoding='utf-8')
-        #DATA = DATA.query("Id == 'Number_of_sips'")
-        #DATA = DATA.query("Date == 170109")
-        #DATA = DATA.sort_values("MedianY")
-        f, axes = plt.subplots(2, sharex=False, figsize=(10,5))
-        axes = screenplot(axes, DATA, "Number_of_sips", "170109")
-        plt.tight_layout()
-        plt.show()
-    else:
-        _files = filedialog.askopenfilenames(title='Choose file/s to load')
-        _ids = [ #"Fano_Factor_of_inBurst_sips_durations",
-                "Median_IFI",
-                #"Fano_Factor_of_IFI",
-                #"Mode_IFI",
-                "Median_duration_of_inBurst_sips_durations",
-                #"Fano_Factor_of_sip_durations",
-                "Median_duration_of_sip_durations",
-                "Inverse_of_Median_duration_of_transition_IBI",
-                "Median_duration_of_feeding_burst_insider_IBI_",
-                "Inverse_of_Median_duration_of_feeding_burst_IBI",
-                "Median_duration_of_feeding_burst_Latency",
-                "total_duration_of_feeding_bursts",
-                "Median_nSips_per_feeding_bursts",
-                "Median_duration_of_feeding_bursts",
-                "Number_of_feeding_bursts_",
-                "Total_duration_of_activity_bouts",
-                "Median_duration_of_activity_bouts",
-                "Inverse_of_Median_duration_of_activity_bout_IBI",
-                "Number_of_activity_bouts",
-                "Number_of_sips" ]
-
-        dfs = []
-        for _file in _files:
-            print(_file)
-            if "Apr" in _file:
-                mult = True
-            else:
-                mult = False
-            df = h5_to_panda(_file, _ids, _multic=mult)
-            dfs.append(df)
-        outdf = pd.concat(dfs, ignore_index=True)
-        print(outdf)
-        asksave = messagebox.askquestion("Saving data", "Do you want to save dataframe into file?", icon='warning')
-        if asksave == 'yes':
-            save_file = filedialog.asksaveasfilename(defaultextension='.csv', title='Choose filename to save',
-                                                            filetypes=[("Comma-separated values","*.csv"),
-                                                              ("All files","*.*")])
-            outdf.to_csv(save_file, sep='\t', encoding='utf-8')
-
-
-if __name__ == "__main__":
-    startdt = now()
-    main()
-    print("Done. Runtime:", strfdelta(now() - startdt, "%H:%M:%S"))

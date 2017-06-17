@@ -1,6 +1,3 @@
-import matplotlib
-matplotlib.use("TkAgg")
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -28,8 +25,8 @@ def swarmbox( _ax, _data, _x, _y, _pval, _s, ps=2, hueon=False):
         _ax = sns.boxplot(x=_x, y=_y, palette=pal, data=_data, width=0.4, linewidth=0.5, showcaps=False, showfliers=False,whiskerprops={'linewidth':0}, ax=_ax)
     else:
         _ax = sns.boxplot(x=_x, y=_y, data=_data, width=0.4, linewidth=0.5, showcaps=False,boxprops={'facecolor':'.85'}, showfliers=False,whiskerprops={'linewidth':0}, ax=_ax)
-    _ax = sns.swarmplot(x=_x, y=_y, hue="Signif"+_s, data=_data, size=ps, ax=_ax, palette=dict(yes = 'r', no = 'k'))
-    _ax = sns.pointplot(x=_x, y=_y, data=_data, estimator=np.median, ci=None, join=False, color="0.5", markers="_", scale=0.75, ax=_ax)
+    #_ax = sns.swarmplot(x=_x, y=_y, hue="Signif"+_s, data=_data, size=ps, ax=_ax, palette=dict(yes = 'r', no = 'k'))
+    _ax = sns.pointplot(x=_x, y=_y, hue="Signif"+_s, data=_data, estimator=np.median, ci=None, join=False, color="0.5", markers="_", scale=0.75, ax=_ax, palette=dict(yes = 'r', no = 'k'))
     return _ax
 
 def screenplot(_axes, _dataframe, _ID, _date, _sort="Y", _title="", _labels=[], _fsuff=""):
