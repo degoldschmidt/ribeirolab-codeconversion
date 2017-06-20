@@ -31,6 +31,8 @@ def filtered(_data, _ID, _date, _temp, _labels=[]):
 
 def scatter(_ax, _data, _ID, _date, _temp, _labels, _lim=8., _showdata=False):
     #_data = filtered(_data, _ID, _date, _temp, _labels=_labels)
+    if len(_labels) == 0:
+        _labels = _data["Label"].unique()
     cY = _data[_data["Label"] == "emptySplitGal4"]["MedianY"].unique()[0]
     cS = _data[_data["Label"] == "emptySplitGal4"]["MedianS"].unique()[0]
     _data["MedianY"] /= cY

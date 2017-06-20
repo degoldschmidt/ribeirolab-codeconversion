@@ -68,22 +68,22 @@ def save_plot(_data, _conds, savedirname):
         _temp = _conds["temp"]
         _grouped = _conds["grouped"]
         if "labels" in _conds.keys():
-            lab = _conds["labels"]
+            _labels = _conds["labels"]
         else:
-            lab = []
+            _labels = []
 
         ### FILTER DATA by keys
-        fdata = filtered(_data, _id, _date, _temp, _labels=lab)
+        fdata = filtered(_data, _id, _date, _temp, _labels=_labels)
 
         ### PLOTTING
-        if len(lab) > 0:
+        if len(_labels) > 0:
             nl = len(_conds["labels"])
         else:
             nl = len(fdata["Label"].unique())
         fwid = 10 * math.sqrt( nl/65 )
         print("Labels:", nl, "-> FigW:", "{:.2f}".format(fwid), "in")
         f, axes = plt.subplots(2, sharex=False, figsize=(fwid,5))
-        axes = screenplot(axes, fdata, _id, _date, _temp, _sort=_sort, _labels=lab, _onlybox=_onlybox, _grouped=_grouped)
+        axes = screenplot(axes, fdata, _id, _date, _temp, _sort=_sort, _labels=_labels, _onlybox=_onlybox, _grouped=_grouped)
 
         ## handle legend
         for ax in axes:
@@ -111,33 +111,35 @@ def save_plot(_data, _conds, savedirname):
         plt.close()
 
 def save_scatter(_data, _conds, savedirname, _lim=8., _showdata=False):
+    _id = _conds["id"]
+    _date = _conds["date"]
     if "labels" in _conds.keys():
-        _id = _conds["id"]
-        _date = _conds["date"]
         _labels = _conds["labels"]
-        _temp = _conds["temp"]
+    else:
+        _labels = []
+    _temp = _conds["temp"]
 
-        ### FILTER DATA by keys
-        fdata = filtered(_data, _id, _date, _temp, _labels=lab)
+    ### FILTER DATA by keys
+    fdata = filtered(_data, _id, _date, _temp, _labels=_labels)
 
-        f, ax = plt.subplots(1, figsize=(5,5))
-        ax = scatter(ax, fdata, _id, _date, _temp, _labels, _lim=_lim, _showdata=_showdata)
-        plt.tight_layout()
+    f, ax = plt.subplots(1, figsize=(5,5))
+    ax = scatter(ax, fdata, _id, _date, _temp, _labels, _lim=_lim, _showdata=_showdata)
+    plt.tight_layout()
 
-        fullfile = _date
-        for key in _conds.keys():
-            if key is not "date":
-                if key is not "onlybox":
-                    if key is "labels":
-                        fullfile += "_fewer"
-                    else:
-                        fullfile += "_" + _conds[key]
-        extra = "_dat" if _showdata else ""
-        fullfile += "_"+str(_lim)+ extra +"_scatter.png"
-        print("Saving plot for", _conds, "as:", savedirname+os.sep+fullfile)
-        plt.savefig(savedirname+os.sep+fullfile, dpi=300)
-        plt.clf()
-        plt.close()
+    fullfile = _date
+    for key in _conds.keys():
+        if key is not "date":
+            if key is not "onlybox":
+                if key is "labels":
+                    fullfile += "_fewer"
+                else:
+                    fullfile += "_" + _conds[key]
+    extra = "_dat" if _showdata else ""
+    fullfile += "_"+str(_lim)+ extra +"_scatter.png"
+    print("Saving plot for", _conds, "as:", savedirname+os.sep+fullfile)
+    plt.savefig(savedirname+os.sep+fullfile, dpi=300)
+    plt.clf()
+    plt.close()
 
 def load_data():
     askload = messagebox.askquestion("Load dataframe", "Wanna load some dataframe?", icon='warning')
@@ -187,6 +189,11 @@ def main():
         if dates == "170210":
             _conds["temp"] = "30ºC"
             _conds["grouped"] = ""
+            sigs = ["emptySplitGal4", "0730", "1576", "1554", "1557", "2259", "1581", "1054", "1052", "2388", "2538", "2618", "2310", "2324", "2275", "1077"]
+            _conds["labels"] = sigs
+            save_scatter(outdf, _conds, savedirname, _lim=8., _showdata=True)
+            save_scatter(outdf, _conds, savedirname, _lim=8., _showdata=False)
+            save_scatter(outdf, _conds, savedirname, _lim=3., _showdata=False)
         if dates == "170109":
             _conds["temp"] = "30ºC"
             _conds["grouped"] = ""
@@ -199,13 +206,13 @@ def main():
             if dates == "170210":
                 _conds["sort"] = sorts
                 save_plot(outdf, _conds, savedirname)
-                #_conds.pop("labels", None)
-                #save_plot(outdf, _conds, savedirname)
+                _conds.pop("labels", None)
+                save_plot(outdf, _conds, savedirname)
                 _conds["onlybox"] = False
                 save_plot(outdf, _conds, savedirname)
                 _conds["onlybox"] = True
-                #sigs = ["emptySplitGal4", "0730", "0732", "1046", "1073", "1077", "1549", "1550", "1561", "1576", "1588", "2275", "2279", "2384", "2538", "2547"]
-                #_conds["labels"] = sigs
+                sigs = ["emptySplitGal4", "0730", "1576", "1554", "1557", "2259", "1581", "1054", "1052", "2388", "2538", "2618", "2310", "2324", "2275"]
+                _conds["labels"] = sigs
             if dates == "170109":
                 _conds["sort"] = sorts
                 save_plot(outdf, _conds, savedirname)
