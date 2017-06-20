@@ -45,7 +45,6 @@ def get_mat_ids(_file):
     for k, v in f.items():
         if "data" in k:
             ids = list(v.keys())
-    print(ids)
     return ids
 
 def get_filename(_file, ID, _sort="", _suf=""):
@@ -174,9 +173,16 @@ def extract_data():
         else:
             mult = False
         _ids = get_mat_ids(_file)
-        df = h5_to_panda(_file, _ids, _multic=mult)
+        if _file == _files[0]:
+            print(_ids)
+        _opt = "new" not in _file
+        print("DATAOPT:", _opt)
+        df = h5_to_panda(_file, _ids, _multic=mult, _datopt=_opt)
         dfs.append(df)
-    outdf = pd.concat(dfs, ignore_index=True)
+    if len(dfs) > 1:
+        outdf = pd.concat(dfs, ignore_index=True)
+    else:
+        outdf = dfs[-1]
     print(outdf)
     asksave = messagebox.askquestion("Saving data", "Do you want to save dataframe into file?", icon='warning')
     if asksave == 'yes':

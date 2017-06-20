@@ -52,25 +52,38 @@ def unrv_labels(_in, multic=False):
     else:
         return [ val[0,0] for val in _in[0][0][0] ]
 
-def h5_to_panda(_file, _ids, _multic=False, _datopt=True):
+def h5_to_panda(_file, _ids, _multic=False, _datopt=True, _labels=[]):
     thisdate, thiseff, thisinternal, thislength = get_conds(_file)
     Out = {"Date": [], "DataY": [], "DataS": [], "Effector": [], "Id": [], "Internal": [], "Label": [], "Length": [], "MedianY": [], "MedianS": [], "pValY": [], "pValS": [], "SignifY": [], "SignifS": [], "Temp": []}
     ### GO THROUGH ALL IDS
     for thisid in _ids:
         ### LOAD MAT FILE
-        if _datopt == True:
+        if _datopt:
             dataid = "data2/" + thisid
             pid = "PVALS/" + thisid
             raw_hdf5 = hdf5storage.loadmat(_file, variable_names=[dataid, pid, "LABELS"])
         else:
             dataid = "data/" + thisid
-            raw_hdf5 = hdf5storage.loadmat(_file, variable_names=[dataid, pid, "LABELS"])
+            pid = "stats/" + thisid
+            print(_file, dataid)
+            raw_hdf5 = hdf5storage.loadmat(_file, variable_names=[dataid])
+            _statsfile = _file.replace("data", "stats")
+            stats_hdf5 = hdf5storage.loadmat(_file, variable_names=[pid])
 
 
         ### UNRAVEL DATA
-        datapoints = unrv_data(raw_hdf5[dataid], multic=_multic)
-        pvals = unrv_data(raw_hdf5[pid], multic=_multic)
-        labels = unrv_labels(raw_hdf5["LABELS"], multic=_multic)
+        if _datopt == True:
+            datapoints = unrv_data(raw_hdf5[dataid], multic=_multic)
+            pvals = unrv_data(raw_hdf5[pid], multic=_multic)
+            labels = unrv_labels(raw_hdf5["LABELS"], multic=_multic)
+        else:
+            datapoints = unrv_data(raw_hdf5[dataid], multic=_multic)
+            pvals = unrv_data(raw_hdf5[pid], multic=_multic)
+            labels = _labels
+
+        print(datapoints.shape)
+        print(pvals.shape)
+        return 0
 
         ### WRITE ALL DATA INTO DICT FOR PANDAS DATAFRAME
         if _multic:
