@@ -52,16 +52,20 @@ def unrv_labels(_in, multic=False):
     else:
         return [ val[0,0] for val in _in[0][0][0] ]
 
-def h5_to_panda(_file, _ids, _multic=False):
+def h5_to_panda(_file, _ids, _multic=False, _datopt=True):
     thisdate, thiseff, thisinternal, thislength = get_conds(_file)
     Out = {"Date": [], "DataY": [], "DataS": [], "Effector": [], "Id": [], "Internal": [], "Label": [], "Length": [], "MedianY": [], "MedianS": [], "pValY": [], "pValS": [], "SignifY": [], "SignifS": [], "Temp": []}
     ### GO THROUGH ALL IDS
     for thisid in _ids:
-        ##print(thisid)
-        dataid = "data2/" + thisid
-        pid = "PVALS/" + thisid
         ### LOAD MAT FILE
-        raw_hdf5 = hdf5storage.loadmat(_file, variable_names=[dataid, pid, "LABELS"])
+        if _datopt == True:
+            dataid = "data2/" + thisid
+            pid = "PVALS/" + thisid
+            raw_hdf5 = hdf5storage.loadmat(_file, variable_names=[dataid, pid, "LABELS"])
+        else:
+            dataid = "data/" + thisid
+            raw_hdf5 = hdf5storage.loadmat(_file, variable_names=[dataid, pid, "LABELS"])
+
 
         ### UNRAVEL DATA
         datapoints = unrv_data(raw_hdf5[dataid], multic=_multic)

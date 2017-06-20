@@ -10,7 +10,9 @@ import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from fp_swarmbox import screenplot, filtered, scatter
+import h5py
 
+"""
 _ids = [ #"Fano_Factor_of_inBurst_sips_durations",
         "Median_IFI",
         #"Fano_Factor_of_IFI",
@@ -31,10 +33,20 @@ _ids = [ #"Fano_Factor_of_inBurst_sips_durations",
         "Inverse_of_Median_duration_of_activity_bout_IBI",
         "Number_of_activity_bouts",
         "Number_of_sips" ]
+"""
 
 def get_conds_pd(_file, _date):
     DATA = pd.read_csv(_file, sep='\t', encoding='utf-8')
     DATA = DATA.query("Date == 170109")
+
+def get_mat_ids(_file):
+    arrays = {}
+    f = h5py.File(_file)
+    for k, v in f.items():
+        if "data" in k:
+            ids = list(v.keys())
+    print(ids)
+    return ids
 
 def get_filename(_file, ID, _sort="", _suf=""):
     _effect = ""
@@ -161,6 +173,7 @@ def extract_data():
             mult = True
         else:
             mult = False
+        _ids = get_mat_ids(_file)
         df = h5_to_panda(_file, _ids, _multic=mult)
         dfs.append(df)
     outdf = pd.concat(dfs, ignore_index=True)
