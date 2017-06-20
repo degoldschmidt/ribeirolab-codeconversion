@@ -30,8 +30,10 @@ def print_attrs(name, obj):
     for key, val in obj.attrs.iteritems():
         print("{:s} {:s}".format(key, val))
 
-def unrv_data(_in, multic=False):
-    if multic:
+def unrv_data(_in, opt=0):
+    if opt==2:
+        return _in[0,]
+    if opt==1:
         out = []
         for condsdata in _in[0]:
             out.append([])
@@ -41,9 +43,11 @@ def unrv_data(_in, multic=False):
     else:
         return _in[0][0][0,]
 
-def unrv_labels(_in, multic=False):
+def unrv_labels(_in, opt=0):
     #return _in[0][0][0]
-    if multic:
+    if opt==2:
+        return [ val[0,0] for val in _in[0,] ]
+    if opt==1:
         out = []
         for condlabels in _in[0]:
             for label in condlabels:
@@ -52,49 +56,76 @@ def unrv_labels(_in, multic=False):
     else:
         return [ val[0,0] for val in _in[0][0][0] ]
 
-def h5_to_panda(_file, _ids, _multic=False, _datopt=True, _labels=[]):
+def h5_to_panda(_file, _ids, _multic=False, _datopt=True):
     thisdate, thiseff, thisinternal, thislength = get_conds(_file)
     Out = {"Date": [], "DataY": [], "DataS": [], "Effector": [], "Id": [], "Internal": [], "Label": [], "Length": [], "MedianY": [], "MedianS": [], "pValY": [], "pValS": [], "SignifY": [], "SignifS": [], "Temp": []}
     ### GO THROUGH ALL IDS
     for thisid in _ids:
+        ### skip it
+        not_those = ["FractionNonEaters", "InsiderIBI", "SipRatio"]
+        if thisid in not_those:
+            continue
         ### LOAD MAT FILE
-        print(_datopt)
         if _datopt:
             dataid = "data2/" + thisid
             pid = "PVALS/" + thisid
-            print(_file, dataid)
             raw_hdf5 = hdf5storage.loadmat(_file, variable_names=[dataid, pid, "LABELS"])
         else:
             dataid = "data/" + thisid
             pid = "stats/" + thisid
-            print(_file, dataid)
             raw_hdf5 = hdf5storage.loadmat(_file, variable_names=[dataid])
             _statsfile = _file.replace("data", "stats")
-            print(_statsfile, dataid)
             stats_hdf5 = hdf5storage.loadmat(_statsfile, variable_names=[pid])
+            _labelfile = _file.replace("data", "label")
+            labid = "Events/ConditionLabel"
+            label_hdf5 = hdf5storage.loadmat(_labelfile, variable_names=[labid])
 
 
         ### UNRAVEL DATA
         if _datopt == True:
-            datapoints = unrv_data(raw_hdf5[dataid], multic=_multic)
-            pvals = unrv_data(raw_hdf5[pid], multic=_multic)
-            labels = unrv_labels(raw_hdf5["LABELS"], multic=_multic)
+            opt = 1 if _multic else 0
+            datapoints = unrv_data(raw_hdf5[dataid], opt=opt)
+            pvals = unrv_data(raw_hdf5[pid], opt=opt)
+            labels = unrv_labels(raw_hdf5["LABELS"], opt=opt)
         else:
-            datapoints = unrv_data(raw_hdf5[dataid], multic=_multic)
-            pvals = unrv_data(raw_hdf5[pid], multic=_multic)
-            labels = _labels
+            opt = 2
+            datapoints = unrv_data(raw_hdf5[dataid], opt=opt)
+            oldpvals = unrv_data(stats_hdf5[pid], opt=opt)
+            labels = unrv_labels(label_hdf5[labid], opt=opt)
+            N = len(labels[2:])
+            maxN =  oldpvals[0].shape[0]
+            pvals = [[],[]]
+            pvals[0].append(1.0)
+            pvals[0].append(1.0)
+            pvals[1].append(1.0)
+            pvals[1].append(1.0)
+            for compi in range(maxN):
+                ido = oldpvals[0][compi,0]
+                if ido == 1:
+                    ide = oldpvals[0][compi,1]
+                    if ide%2==0:
+                        pass
+                    else:
+                        pvals[0].append(oldpvals[0][compi,2])
+                        pvals[1].append(oldpvals[1][compi,2])
+                elif ido == 2:
+                    ide = oldpvals[0][compi,1]
+                    if ide%2==0:
+                        pvals[0].append(oldpvals[0][compi,2])
+                        pvals[1].append(oldpvals[1][compi,2])
+                else:
+                    break
 
-        print(datapoints.shape)
-        print(pvals.shape)
-        return 0
+        pvals = np.array(pvals)
+
 
         ### WRITE ALL DATA INTO DICT FOR PANDAS DATAFRAME
+        if _datopt == False:
+            _multic = _datopt
         if _multic:
             temps = ["22ºC", "30ºC"]
         else:
             temps = ["30ºC"]
-        if thisid == _ids[0]:
-            print(temps, _multic)
         for id1, temp in enumerate(temps):
             if _multic:
                 thisdata = datapoints[id1]
@@ -113,7 +144,10 @@ def h5_to_panda(_file, _ids, _multic=False, _datopt=True, _labels=[]):
             for col in range(thisdata[0].shape[1]):      # different labels
                 for row in range(thisdata[0].shape[0]):      # different datapoints; same label
                     if ~np.isnan(thisdata[0][row, col]) and ~np.isnan(thisdata[1][row, col]):
-                        Out["Label"].append(thislabels[col])
+                        if _datopt:
+                            Out["Label"].append(thislabels[col])
+                        else:
+                            Out["Label"].append(thislabels[col][:-4])
                         Out["Date"].append(thisdate)
                         Out["DataY"].append(thisdata[0][row, col])
                         Out["DataS"].append(thisdata[1][row, col])
@@ -123,14 +157,21 @@ def h5_to_panda(_file, _ids, _multic=False, _datopt=True, _labels=[]):
                         Out["Length"].append(thislength)
                         Out["MedianY"].append(np.nanmedian(thisdata[0][:,col]))
                         Out["MedianS"].append(np.nanmedian(thisdata[1][:,col]))
-                        Out["pValY"].append(thisp[0][col][0])
-                        Out["pValS"].append(thisp[1][col][0])
-                        if thislabels[col] == "emptySplitGal4":
+                        if _datopt:
+                            Out["pValY"].append(thisp[0][col][0])
+                            Out["pValS"].append(thisp[1][col][0])
+                        else:
+                            Out["pValY"].append(thisp[0, col])
+                            Out["pValS"].append(thisp[1, col])
+                        if "emptySplitGal4" in thislabels[col]:
                             Out["SignifY"].append("control")
                             Out["SignifS"].append("control")
                         else:
                             Out["SignifY"].append("yes" if math.log10(1./thisp[0][col])>2 else "no")
                             Out["SignifS"].append("yes" if math.log10(1./thisp[1][col])>2 else "no")
-                        Out["Temp"].append(temp)
+                        if _datopt:
+                            Out["Temp"].append(temp)
+                        else:
+                            Out["Temp"].append(thislabels[col][-3:-1] + "ºC")
 
     return pd.DataFrame(Out)
