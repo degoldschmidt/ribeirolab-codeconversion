@@ -58,9 +58,11 @@ def h5_to_panda(_file, _ids, _multic=False, _datopt=True, _labels=[]):
     ### GO THROUGH ALL IDS
     for thisid in _ids:
         ### LOAD MAT FILE
+        print(_datopt)
         if _datopt:
             dataid = "data2/" + thisid
             pid = "PVALS/" + thisid
+            print(_file, dataid)
             raw_hdf5 = hdf5storage.loadmat(_file, variable_names=[dataid, pid, "LABELS"])
         else:
             dataid = "data/" + thisid
@@ -68,7 +70,8 @@ def h5_to_panda(_file, _ids, _multic=False, _datopt=True, _labels=[]):
             print(_file, dataid)
             raw_hdf5 = hdf5storage.loadmat(_file, variable_names=[dataid])
             _statsfile = _file.replace("data", "stats")
-            stats_hdf5 = hdf5storage.loadmat(_file, variable_names=[pid])
+            print(_statsfile, dataid)
+            stats_hdf5 = hdf5storage.loadmat(_statsfile, variable_names=[pid])
 
 
         ### UNRAVEL DATA
