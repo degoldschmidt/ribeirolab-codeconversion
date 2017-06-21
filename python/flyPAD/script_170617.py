@@ -95,6 +95,13 @@ def save_plot(_data, _conds, savedirname):
         print("Labels:", nl, "-> FigW:", "{:.2f}".format(fwid), "in")
         f, axes = plt.subplots(2, sharex=False, figsize=(fwid,5))
         axes = screenplot(axes, fdata, _id, _date, _temp, _sort=_sort, _labels=_labels, _onlybox=_onlybox, _grouped=_grouped)
+        for ax in axes:
+            if _id == "Median_duration_of_activity_bouts":
+                ax.set_ylabel("Median Dur. AB [s]")
+            if _id == "Inverse_of_Median_duration_of_activity_bout_IBI":
+                ax.set_ylabel("Median Freq. AB IBI [1/s]")
+            if _id == "Inverse_of_Median_duration_of_transition_IBI":
+                ax.set_ylabel("Median Freq. trans. FB IBI [1/s]")
 
         ## handle legend
         for ax in axes:
@@ -200,9 +207,10 @@ def main():
         outdf = extract_data()
     ### Conditions
     savedirname = '/Users/degoldschmidt/Google Drive/PhD Project/Data/DN-AllFlyPADcombined/plots/' #filedialog.askdirectory(title="Where do you wanna save the plots")
-    for dates in ["170210"]: # ["170109", "170210", "170403", "170408"]
+    for dates in []: # ["170109", "170210", "170403", "170408"]
         _conds = {}
-        _conds["id"] = "Number_of_sips"
+        #_conds["id"] = "Number_of_sips"
+        _conds["id"] = "NumberOfSips"
         _conds["date"] = dates
         _conds["onlybox"] = True
         if dates == "170210":
@@ -245,8 +253,35 @@ def main():
             if dates == "170403":
                 _conds["temp"] = ""
                 _conds["grouped"] = "Temp"
+                _conds["onlybox"] = True
                 _conds["sort"] = sorts
                 save_plot(outdf, _conds, savedirname)
+            if dates == "170408":
+                _conds["temp"] = ""
+                _conds["grouped"] = "Temp"
+                _conds["onlybox"] = True
+                _conds["sort"] = sorts
+                save_plot(outdf, _conds, savedirname)
+
+    for dates in ["170109", "170210"]: #, "170403", "170408"
+        for _id in ["Median_duration_of_activity_bouts",
+                    "Inverse_of_Median_duration_of_activity_bout_IBI",
+                    "Inverse_of_Median_duration_of_transition_IBI"]:
+            _conds = {}
+            _conds["id"] = _id
+            _conds["date"] = dates
+            _conds["onlybox"] = True
+            for sorts in ["Y", "S"]:
+                _conds["sort"] = sorts
+                _conds["temp"] = "30ºC"
+                _conds["grouped"] = ""
+                if dates == "170210":
+                    sigs = ["emptySplitGal4", "0730", "1576", "1554", "1557", "2259", "1581", "1054", "1052", "2388", "2538", "2618", "2310", "2324", "2275"]
+                else:
+                    sigs = ["emptySplitGal4", "0730", "0732", "1046", "1073", "1077", "1549", "1550", "1561", "1576", "1588", "2275", "2279", "2384", "2538", "2547"]
+                _conds["labels"] = sigs
+                save_plot(outdf, _conds, savedirname)
+
 
 
 

@@ -71,6 +71,8 @@ def swarmbox( _ax, _data, _x, _y, _pval, _s, ps=2, _onlybox=True, _grouped=""):
     if not _onlybox:
         if len(_grouped)==0:
             _ax = sns.swarmplot(x=_x, y=_y, hue="Signif"+_s, data=_data, size=ps, ax=_ax, palette=dict(yes = 'r', no = 'k', control = 'b'))
+        else:
+            _ax = sns.swarmplot(x=_x, y=_y, hue=_grouped, data=_data, size=ps, ax=_ax, palette="RdBu_r", split=True, edgecolor="gray")
     if len(_grouped)==0:
         _ax = sns.boxplot(x=_x, y=_y, data=_data, width=0.4, linewidth=0.5, showcaps=False,boxprops={'facecolor':'.85'}, showfliers=False,whiskerprops={'linewidth':0}, ax=_ax)
         _ax = sns.pointplot(x=_x, y=_y, hue="Signif"+_s, data=_data, estimator=np.median, ci=None, join=False, color="0.5", markers="_", scale=0.75, ax=_ax, palette=dict(yes = 'r', no = 'k', control = 'b' ))
@@ -113,10 +115,14 @@ def screenplot(_axes, _dataframe, _ID, _date, _temp, _sort="Y", _title="", _labe
             pVals = np.array( [ Df[Df.Label == label]["pVal"+s].unique()[0] for label in Labels ] )
 
         cmedian = Df[Df.Label == "emptySplitGal4"]["Median"+s].unique()[0]
+        dmedian = np.nanmedian(Df[Df.Label == "emptySplitGal4"]["Data"+s])
+        print(cmedian, dmedian)
         ax2 = ax.twinx()
         ax2.plot(np.log10(1./pVals), 'k-', linewidth=0.5)
         ax = swarmbox(ax, Df, "Label", "Data"+s, np.log10(1./np.array(pVals[i])), s, _onlybox = _onlybox, _grouped=_grouped)
-        ax.axhline(y=cmedian, xmin=0.0, xmax=1., linewidth=1, color = 'b', ls = "dotted", alpha=0.5)
+        #ax.set_ylim(1.4, 1.8)
+        if _grouped == "":
+            ax.axhline(y=dmedian, xmin=0.0, xmax=1., linewidth=1, color = 'b', ls = "dotted", alpha=0.5)
 
         ax.set_xticklabels(Labels, rotation=60, ha='right')
         ax.grid(which='major', axis='y', linestyle='--')
