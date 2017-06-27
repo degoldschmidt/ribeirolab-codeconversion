@@ -100,6 +100,7 @@ def save_plot(_data, _conds, savedirname):
                 ax.set_ylabel("Median Dur. AB [s]")
             if _id == "Inverse_of_Median_duration_of_activity_bout_IBI":
                 ax.set_ylabel("Median Freq. AB IBI [1/s]")
+                ax.set_ylim([0.0, 0.05])
             if _id == "Inverse_of_Median_duration_of_transition_IBI":
                 ax.set_ylabel("Median Freq. trans. FB IBI [1/s]")
 
@@ -263,10 +264,11 @@ def main():
                 _conds["sort"] = sorts
                 save_plot(outdf, _conds, savedirname)
 
-    for dates in ["170109", "170210"]: #, "170403", "170408"
-        for _id in ["Median_duration_of_activity_bouts",
-                    "Inverse_of_Median_duration_of_activity_bout_IBI",
-                    "Inverse_of_Median_duration_of_transition_IBI"]:
+    for dates in ["170109"]:#, "170210"]: #, "170403", "170408"
+        for _id in ["Inverse_of_Median_duration_of_activity_bout_IBI"]:
+            #["Median_duration_of_activity_bouts",
+            #        "Inverse_of_Median_duration_of_activity_bout_IBI",
+            #        "Inverse_of_Median_duration_of_transition_IBI"]:
             _conds = {}
             _conds["id"] = _id
             _conds["date"] = dates
