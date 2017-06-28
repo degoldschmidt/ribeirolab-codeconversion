@@ -54,6 +54,16 @@ def json_dump(_files, labels=["CANS", "ORCO", "TBEH"]):
         print(outdict[idx].keys())
         json.dump(outdict[idx],codecs.open(_files+"/new_files/"+ex+".json", 'w', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
 
+def data_dump(_files, labels=["CANS", "ORCO", "TBEH"]):
+    outdict = [{},{},{}]
+    exp = labels
+    for _file in os.listdir(_files):
+        for idx,ex in enumerate(exp):
+            filedict = {}
+            if ex in _file and "Centroids.csv" in _file:
+                print(_file)
+                df = pd.read_csv(_files+os.sep+_file, delimiter=';', nrows=10)
+                print(df.head(10))
 
 if __name__ == "__main__":
     Tk().withdraw()
@@ -62,7 +72,10 @@ if __name__ == "__main__":
     else:
         #_files = filedialog.askopenfilenames(title='Choose file to load')
         _files = filedialog.askdirectory(title='Choose files to load')
-    json_dump(_files)
-    ### READ OUT CSV HEAD and BODY CENTROID and BUILD DATAFILE PER SESSION  
+    #json_dump(_files)
+    data_dump(_files)
+
+
+    ### READ OUT CSV HEAD and BODY CENTROID and BUILD DATAFILE PER SESSION
     #print(_file)
     #data = np.genfromtxt(_file, delimiter=';')
