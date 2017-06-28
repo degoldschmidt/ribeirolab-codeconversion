@@ -141,8 +141,3 @@ if __name__ == "__main__":
     json_dump(_files)
     data_dump(_files)
     print("Done. Runtime:", strfdelta(now() - startdt, "%H:%M:%S"))
-
-
-    ### READ OUT CSV HEAD and BODY CENTROID and BUILD DATAFILE PER SESSION
-    #print(_file)
-    #data = np.genfromtxt(_file, delimiter=';')
