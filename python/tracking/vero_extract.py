@@ -129,7 +129,7 @@ def data_dump(_files, labels=["CANS", "ORCO", "TBEH"]):
             fullname = outfold + fname
             print("Saving data for:", fname)
             print("Runtime:", strfdelta(now() - startdt, "%H:%M:%S"))
-            np.savetxt(fullname+".csv", filearray, delimiter='\t', newline='\n', header='body_x\tbody_y\thead_x\thead_y')
+            np.savetxt(fullname+".csv", filearray, fmt='%4.3f', delimiter='\t', newline='\n', header='body_x\tbody_y\thead_x\thead_y')
             #np.save(fullname+".npy", filearray)
 
 
