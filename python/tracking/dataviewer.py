@@ -15,14 +15,14 @@ class DataViewerApp():
         self.lframe.grid(row=0, column=0, columnspan=2, rowspan=2)
         self.tree = TreeListBox(self.lframe, "", {})
 
-        rtframe = tk.LabelFrame(self.master, text = "Parameters Info")
-        rtframe.grid(row=0, column=2)
+        self.rtframe = tk.LabelFrame(self.master, text = "Parameters Info")
+        self.rtframe.grid(row=0, column=2)
 
-        rbframe = tk.LabelFrame(self.master, text = "Preview")
-        rbframe.grid(row=1, column=2)
+        self.rbframe = tk.LabelFrame(self.master, text = "Preview")
+        self.rbframe.grid(row=1, column=2)
 
         self.info = tk.StringVar()
-        self.infotext = tk.Label(rtopframe, textvariable = self.info, relief = tk.SUNKEN, justify=tk.LEFT)
+        self.infotext = tk.Label(self.rtframe, textvariable = self.info, relief = tk.SUNKEN, justify=tk.LEFT)
         self.infotext.pack()
 
     def update_tree(self, _title, _dict):

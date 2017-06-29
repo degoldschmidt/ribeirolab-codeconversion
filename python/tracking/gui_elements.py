@@ -52,10 +52,10 @@ class TreeListBox:
 class MenuBar():
     def __init__(self, master):
         self.menubar = tk.Menu(master)
-        menu = Menu(self.menubar, tearoff=0)
+        menu = tk.Menu(self.menubar, tearoff=0)
         self.menubar.add_cascade(label="File", menu=menu)
         menu.add_command(label="New")
-        menu = Menu(self.menubar, tearoff=0)
+        menu = tk.Menu(self.menubar, tearoff=0)
         self.menubar.add_cascade(label="Edit", menu=menu)
         menu.add_command(label="Cut")
         menu.add_command(label="Copy")
