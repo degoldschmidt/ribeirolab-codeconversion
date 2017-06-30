@@ -14,21 +14,21 @@ class TreeListBox:
             self.build_tree(self.root, '')
 
     def setup_widget_tree(self):
-        container_tree = tk.Frame(self.master, width=250, height=300)
-        container_tree.propagate(False)
-        container_tree.pack(side="left", fill='y')
-        self.tree = ttk.Treeview(container_tree, show="tree", selectmode='browse')
-        fr_y = tk.Frame(container_tree)
-        fr_y.pack(side='right', fill='y')
-        tk.Label(fr_y, borderwidth=1, relief='raised', font="Arial 8").pack(side='bottom', fill='x')
-        sb_y = tk.Scrollbar(fr_y, orient="vertical", command=self.tree.yview)
-        sb_y.pack(expand='yes', fill='y')
-        fr_x = tk.Frame(container_tree)
-        fr_x.pack(side='bottom', fill='x')
-        sb_x = tk.Scrollbar(fr_x, orient="horizontal", command=self.tree.xview)
-        sb_x.pack(expand='yes', fill='x')
-        self.tree.configure(yscrollcommand=sb_y.set, xscrollcommand=sb_x.set)
-        self.tree.pack(fill='both', expand='yes')
+        #container_tree = tk.Frame(self.master, width=500, height=300)
+        #container_tree.propagate(False)
+        #container_tree.pack(side="left", fill='y')
+        self.tree = ttk.Treeview(self.master, show="tree", selectmode='browse')
+        #fr_y = tk.Frame(container_tree)
+        #fr_y.pack(side='right', fill='y')
+        #tk.Label(fr_y, borderwidth=1, relief='raised', font="Arial 8").pack(side='bottom', fill='x')
+        #sb_y = tk.Scrollbar(fr_y, orient="vertical", command=self.tree.yview)
+        #sb_y.pack(fill='y')
+        #fr_x = tk.Frame(container_tree)
+        #fr_x.pack(side='bottom', fill='x')
+        #sb_x = tk.Scrollbar(fr_x, orient="horizontal", command=self.tree.xview)
+        #sb_x.pack(fill='x')
+        #self.tree.configure(yscrollcommand=sb_y.set, xscrollcommand=sb_x.set)
+        self.tree.pack(fill=tk.BOTH,expand=True)
 
     def build_tree(self, parent, id_stroki):
         self.level += 1
@@ -49,14 +49,14 @@ class TreeListBox:
             self.build_tree(element, id)
         self.level -= 1
 
-class MenuBar():
+class MenuBar(tk.Menu):
     def __init__(self, master):
-        self.menubar = tk.Menu(master)
-        menu = tk.Menu(self.menubar, tearoff=0)
-        self.menubar.add_cascade(label="File", menu=menu)
+        tk.Menu.__init__(self, master)
+        menu = tk.Menu(self, tearoff=0)
+        self.add_cascade(label="File", menu=menu)
         menu.add_command(label="New")
-        menu = tk.Menu(self.menubar, tearoff=0)
-        self.menubar.add_cascade(label="Edit", menu=menu)
+        menu = tk.Menu(self, tearoff=0)
+        self.add_cascade(label="Edit", menu=menu)
         menu.add_command(label="Cut")
         menu.add_command(label="Copy")
         menu.add_command(label="Paste")

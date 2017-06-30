@@ -12,14 +12,16 @@ class DataViewerApp():
         self.master.config(menu=menubar)
 
         self.lframe = tk.LabelFrame(self.master, text = "Database structure")
-        self.lframe.grid(row=0, column=0, columnspan=2, rowspan=2)
+        self.lframe.pack(fill=tk.BOTH, side=tk.LEFT, expand=tk.YES)
         self.tree = TreeListBox(self.lframe, "", {})
 
-        self.rtframe = tk.LabelFrame(self.master, text = "Parameters Info")
-        self.rtframe.grid(row=0, column=2)
+        self.rframe = tk.Frame(self.master)
+        self.rtframe = tk.LabelFrame(self.rframe, text = "Parameters Info")
+        self.rtframe.pack(fill=tk.BOTH)
 
-        self.rbframe = tk.LabelFrame(self.master, text = "Preview")
-        self.rbframe.grid(row=1, column=2)
+        self.rbframe = tk.LabelFrame(self.rframe, text = "Preview")
+        self.rbframe.pack(fill=tk.BOTH)
+        self.rframe.pack(fill=tk.BOTH, side=tk.RIGHT)
 
         self.info = tk.StringVar()
         self.infotext = tk.Label(self.rtframe, textvariable = self.info, relief = tk.SUNKEN, justify=tk.LEFT)
