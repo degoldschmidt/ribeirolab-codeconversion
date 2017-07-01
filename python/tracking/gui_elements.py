@@ -4,9 +4,10 @@ import tkinter.font as tk_font
 
 class TreeListBox:
 
-    def __init__(self, master, root, dict_group):
+    def __init__(self, master, root, dict_group, app=None):
         self.master = master
         self.root = root
+        self.app = app
         self.dict_group = dict_group
         self.level = 0
         self.setup_widget_tree()
@@ -28,7 +29,22 @@ class TreeListBox:
         #sb_x = tk.Scrollbar(fr_x, orient="horizontal", command=self.tree.xview)
         #sb_x.pack(fill='x')
         #self.tree.configure(yscrollcommand=sb_y.set, xscrollcommand=sb_x.set)
+        self.tree.bind('<ButtonRelease-1>', self.selectItem)
+        self.tree.bind('<KeyRelease-Up>', self.selectItem)
+        self.tree.bind('<KeyRelease-Down>', self.selectItem)
         self.tree.pack(fill=tk.BOTH,expand=True)
+
+    def update_tree(self, _root, _dict):
+        self.root = _root
+        self.dict_group = _dict
+        self.tree.heading('#0', text='Database')
+        #self.tree.heading('#1', text='Experiment')
+        #self.tree.heading('#2', text='Session')
+        #self.tree.column('#1', stretch=Tkinter.YES)
+        #self.tree.column('#2', stretch=Tkinter.YES)
+        #self.tree.column('#0', stretch=Tkinter.YES)
+        if len(_dict.keys()) > 0:
+            self.build_tree(self.root, '')
 
     def build_tree(self, parent, id_stroki):
         self.level += 1
@@ -49,17 +65,22 @@ class TreeListBox:
             self.build_tree(element, id)
         self.level -= 1
 
+    def selectItem(self, a):
+        curItem = self.tree.focus()
+        #print(self.tree.item(curItem))
+        self.app.set_item(self.tree.item(curItem))
+
 class MenuBar(tk.Menu):
-    def __init__(self, master):
+    def __init__(self, master, labels):
         tk.Menu.__init__(self, master)
-        menu = tk.Menu(self, tearoff=0)
-        self.add_cascade(label="File", menu=menu)
-        menu.add_command(label="New")
-        menu = tk.Menu(self, tearoff=0)
-        self.add_cascade(label="Edit", menu=menu)
-        menu.add_command(label="Cut")
-        menu.add_command(label="Copy")
-        menu.add_command(label="Paste")
+        for label, llist in labels.items():
+            menu = tk.Menu(self, tearoff=0)
+            self.add_cascade(label=label, menu=menu)
+            for slab in llist:
+                if isinstance(slab, tuple):
+                    menu.add_command(label=slab[0], command=slab[1])
+                else:
+                    menu.add_command(label=slab)
 
 
 if __name__ == '__main__':
