@@ -39,7 +39,7 @@ class DataViewerApp():
     def __init__(self, master):
         self.master = master
         self.master.wm_title("DataViewer")
-        self.master.minsize(width=800, height=600)
+        self.master.minsize(width=1200, height=600)
         menulabels = {"File": [
                                 ("New database", self.gotcha),
                                 ("Open database", self.file_open)
@@ -47,8 +47,8 @@ class DataViewerApp():
         menubar = MenuBar(self.master, menulabels)
         self.master.config(menu=menubar)
 
-        self.lframe = tk.Frame(self.master, width=600)
-        self.liframe = tk.LabelFrame(self.lframe, text = "Database structure", width=600)
+        self.lframe = tk.Frame(self.master)
+        self.liframe = tk.LabelFrame(self.lframe, text = "Database structure")
         self.tree = TreeListBox(self.liframe, "", {}, app=self)
         self.liframe.pack(fill=tk.BOTH, expand=tk.YES)
         self.lframe.pack(fill=tk.BOTH, side=tk.LEFT, expand=tk.YES)
