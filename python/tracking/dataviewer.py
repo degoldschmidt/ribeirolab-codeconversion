@@ -4,6 +4,20 @@ from tkinter import ttk
 import data_integrity as di
 from gui_elements import TreeListBox, MenuBar
 import os,sys,os.path
+import numpy as np
+
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+# implement the default mpl key bindings
+from matplotlib.backend_bases import key_press_handler
+from matplotlib.figure import Figure
+from matplotlib import cm
+
+#### test seaborn style
+import seaborn as sns
+sns.set_style("ticks")
 
 FILEOPENOPTIONS = dict(defaultextension='.txt',
                   filetypes=[('All files','*.*'), ('Bin file','*.txt')])
@@ -21,7 +35,6 @@ def tabular(_keys, _vals):
     for key in _keys:
         if len(key) > maxlen:
             maxlen = len(key)
-    print("max:", maxlen)
     for i,key in enumerate(_keys):
         #print("diff:",maxlen-len(key))
         out += key
@@ -64,6 +77,16 @@ class DataViewerApp():
         self.info = tk.StringVar()
         self.infotext = tk.Label(self.rtframe, textvariable = self.info, relief = tk.SUNKEN, justify=tk.LEFT)
         self.infotext.pack(fill=tk.BOTH)
+
+        # a tk.DrawingArea
+        self.fig = Figure(figsize=(5, 5), dpi=90)
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.rbframe)
+        self.canvas.show()
+        self.canvas.get_tk_widget().pack(side=tk.TOP)
+
+        #self.toolbar = NavigationToolbar2TkAgg(self.canvas, self.rbframe)
+        #self.toolbar.update()
+        self.canvas._tkcanvas.pack(side=tk.TOP)
 
         try:
             with open("."+os.sep+"last_login.txt", 'r') as f:
@@ -121,6 +144,22 @@ class DataViewerApp():
                 break
         return outdict
 
+    def load_preview(self):
+        self.fig.clf()
+        a = self.fig.add_subplot(111)
+        a.set_title('Loading data...', fontsize=36)
+        a.set_axis_off()
+        self.canvas.show()
+
+    def plot_preview(self):
+        self.fig.clf()
+        a = self.fig.add_subplot(111)
+        subsa=1
+        time = np.arange(0,len(self.data[::subsa,0]))
+        a.scatter(self.data[::subsa,0],self.data[::subsa,1], s=0.25)# c=time, cmap=cm.viridis, alpha=0.5)
+        self.canvas.show()
+
+
     def set_item(self, _item):
         curr_item = _item['text'].split("\t")[0]
         curr_type = _item['text'].split("\t")[1]
@@ -150,6 +189,10 @@ class DataViewerApp():
 
         self.info.set(infostring)
 
+        if curr_type == "[SESSION]":
+            self.load_preview()
+            self.data = np.loadtxt(self.dir+os.sep+curr_item+".csv", usecols=[0, 1])
+            self.plot_preview()
 
 
     def update_tree(self, _title, _dict):
@@ -162,5 +205,9 @@ if __name__ == "__main__":
         #flags = di.data_check(_dir)
         root = tk.Tk()
         app = DataViewerApp(root)
-        root.mainloop()
-        #print(flags)
+        while True:
+            try:
+                root.mainloop()
+                break
+            except UnicodeDecodeError:
+                pass

@@ -14,6 +14,18 @@ class TreeListBox:
         if len(dict_group.keys()) > 0:
             self.build_tree(self.root, '')
 
+        # create a popup menu
+        self.rcMenu = tk.Menu(master, tearoff=0)
+        self.rcMenu.add_command(label="Undo")
+        self.rcMenu.add_command(label="Redo")
+
+
+
+
+    def right_click(self, event):
+        print("Rightclick")
+        self.rcMenu.post(event.x_root, event.y_root)
+
     def setup_widget_tree(self):
         #container_tree = tk.Frame(self.master, width=500, height=300)
         #container_tree.propagate(False)
@@ -32,7 +44,9 @@ class TreeListBox:
         self.tree.bind('<ButtonRelease-1>', self.selectItem)
         self.tree.bind('<KeyRelease-Up>', self.selectItem)
         self.tree.bind('<KeyRelease-Down>', self.selectItem)
+        self.tree.bind("<Button-2>", self.right_click)
         self.tree.pack(fill=tk.BOTH,expand=True)
+
 
     def update_tree(self, _root, _dict):
         self.root = _root
