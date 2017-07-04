@@ -74,9 +74,13 @@ class DataViewerApp():
         self.rbframe.pack(fill=tk.BOTH)
         self.rframe.pack(fill=tk.BOTH, side=tk.RIGHT, expand=tk.NO)
 
-        self.info = tk.StringVar()
-        self.infotext = tk.Label(self.rtframe, textvariable = self.info, relief = tk.SUNKEN, justify=tk.LEFT)
-        self.infotext.pack(fill=tk.BOTH)
+        self.keys = tk.StringVar()
+        self.vals = tk.StringVar()
+        self.keytext = tk.Label(self.rtframe, textvariable = self.keys, justify=tk.RIGHT) #relief= tk.SUNKEN,
+        self.valtext = tk.Label(self.rtframe, textvariable = self.vals, justify=tk.LEFT)
+        self.keytext.pack(fill=tk.BOTH, side=tk.LEFT, expand=tk.NO)
+        self.valtext.pack(fill=tk.BOTH, side=tk.LEFT, expand=tk.YES)
+
 
         # a tk.DrawingArea
         self.fig = Figure(figsize=(5, 5), dpi=90)
@@ -125,7 +129,7 @@ class DataViewerApp():
             with open(_file) as f:
                 lines = f.readlines()
             lineids = [line.count('|') + line.count('!') + line.count('@') for line in lines]
-        except OSError:
+        except NameError:
             print('Error: cannot open database file', arg)
         outdict = {}
         for i, line in enumerate(lines):
@@ -156,38 +160,41 @@ class DataViewerApp():
         a = self.fig.add_subplot(111)
         subsa=1
         time = np.arange(0,len(self.data[::subsa,0]))
-        a.scatter(self.data[::subsa,0],self.data[::subsa,1], s=0.25)# c=time, cmap=cm.viridis, alpha=0.5)
+        a.scatter(self.data[::subsa,0],self.data[::subsa,1], s=0.25, c=time, cmap=cm.viridis, alpha=0.5)
         self.canvas.show()
 
 
     def set_item(self, _item):
         curr_item = _item['text'].split("\t")[0]
         curr_type = _item['text'].split("\t")[1]
-        infostring = ""
+        keystring = ""
+        valstring = ""
 
         ### DATABASE
         if curr_type == "[DATABASE]":
-            infostring += "database name:\t"+curr_item+"\n"
+            keystring += "database name:\n"
+            valstring += curr_item+"\n"
         ### Experiment
         if curr_item in self.metadata.keys():
-            infostring += "experiment name:\t"+curr_item+"\n"
-            infostring += "# sessions:\t{:d}\n".format( len([label for label in self.metadata[curr_item].keys() if label.startswith(curr_item)]) )
+            keystring += "experiment name:\n"
+            valstring += curr_item+"\n"
+            keystring += "# sessions:\n"
+            valstring += "{:d}\n".format( len([label for label in self.metadata[curr_item].keys() if label.startswith(curr_item)]) )
         ### Session
         if curr_type == "[SESSION]":
             exp = curr_item[:4]
-            infostring += "session name:\t"+curr_item+"\n"
+            keystring += "session name:\n"
+            valstring += curr_item+"\n"
 
-            listkeys = []
-            listvals = []
             for key,val in self.metadata[exp][curr_item[:-5]].items():
-                listkeys.append(key)
+                keystring += key + "\n"
                 if type(val) is not list:
-                    listvals.append(str(val))
+                    valstring += str(val)+"\n"
                 else:
-                    listvals.append("")
-            infostring+=tabular(listkeys, listvals)
+                    valstring += "\n"
 
-        self.info.set(infostring)
+        self.keys.set(keystring)
+        self.vals.set(valstring)
 
         if curr_type == "[SESSION]":
             self.load_preview()

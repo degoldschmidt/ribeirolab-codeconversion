@@ -1,6 +1,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.font as tk_font
+import os
 
 class TreeListBox:
 
@@ -16,15 +17,14 @@ class TreeListBox:
 
         # create a popup menu
         self.rcMenu = tk.Menu(master, tearoff=0)
-        self.rcMenu.add_command(label="Undo")
-        self.rcMenu.add_command(label="Redo")
-
-
-
+        self.rcMenu.add_command(label="Open video annotator")
+        self.rcMenu.add_command(label="Open analysis pipeline")
 
     def right_click(self, event):
-        print("Rightclick")
-        self.rcMenu.post(event.x_root, event.y_root)
+        curItem = self.tree.focus()
+        curText = self.tree.item(curItem)['text']
+        if curText.split("\t")[1] == "[SESSION]":
+            self.rcMenu.post(event.x_root, event.y_root)
 
     def setup_widget_tree(self):
         #container_tree = tk.Frame(self.master, width=500, height=300)
@@ -44,7 +44,10 @@ class TreeListBox:
         self.tree.bind('<ButtonRelease-1>', self.selectItem)
         self.tree.bind('<KeyRelease-Up>', self.selectItem)
         self.tree.bind('<KeyRelease-Down>', self.selectItem)
-        self.tree.bind("<Button-2>", self.right_click)
+        if os.name == 'nt':
+            self.tree.bind("<Button-3>", self.right_click)
+        else:
+            self.tree.bind("<Button-2>", self.right_click)
         self.tree.pack(fill=tk.BOTH,expand=True)
 
 
