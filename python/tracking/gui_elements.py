@@ -20,6 +20,12 @@ class TreeListBox:
         self.rcMenu.add_command(label="Open video annotator")
         self.rcMenu.add_command(label="Open analysis pipeline")
 
+    def get_item(self):
+        return self.tree.item(self.tree.focus())['text'].split("\t")[0]
+
+    def get_type(self):
+        return self.tree.item(self.tree.focus())['text'].split("\t")[1]
+
     def right_click(self, event):
         curItem = self.tree.focus()
         curText = self.tree.item(curItem)['text']

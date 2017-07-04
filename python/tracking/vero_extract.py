@@ -123,13 +123,13 @@ def data_dump(_files, labels=["CANS", "ORCO", "TBEH"]):
                 df = pd.read_csv(_files+os.sep+_file, delimiter=';', usecols=[flies], skip_blank_lines=True, header=0)
                 filearray[:,idx] = np.array(df)[:,0]
                 del df
-            fname = ex + "_{:03d}".format(flies+1) + "_data"
+            fname = ex + "_{:03d}".format(flies+1)
             outfold = "E:/Dennis/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/"
             #fullname = _files+os.sep+"new_files"+os.sep+fname
             fullname = outfold + fname
             print("Saving data for:", fname)
             print("Runtime:", strfdelta(now() - startdt, "%H:%M:%S"))
-            np.savetxt(fullname+".csv", filearray, fmt='%4.3f', delimiter='\t', newline='\n', header='body_x\tbody_y\thead_x\thead_y')
+            np.savetxt(fullname+".csv", filearray, fmt='%.3f', delimiter='\t', newline='\n', header='body_x\tbody_y\thead_x\thead_y')
             #np.save(fullname+".npy", filearray)
 
 

@@ -56,7 +56,14 @@ class DataViewerApp():
         menulabels = {"File": [
                                 ("New database", self.gotcha),
                                 ("Open database", self.file_open)
-                                ]}
+                                ],
+                      "Edit": [
+                                ("New experiment", self.gotcha),
+                                ("Edit experiment", self.file_open)
+                                ],
+                      "View": [
+                                ("Toggle preview", self.toggle_preview)
+                      ]}
         menubar = MenuBar(self.master, menulabels)
         self.master.config(menu=menubar)
 
@@ -92,6 +99,8 @@ class DataViewerApp():
         #self.toolbar.update()
         self.canvas._tkcanvas.pack(side=tk.TOP)
 
+        self.preview_on = False
+
         try:
             with open("."+os.sep+"last_login.txt", 'r') as f:
                 lines = f.readlines()
@@ -100,8 +109,6 @@ class DataViewerApp():
                 self.load_file()
         except OSError:
             pass
-
-
 
     def gotcha(self):
         print("Gotcha!")
@@ -150,23 +157,37 @@ class DataViewerApp():
 
     def load_preview(self):
         self.fig.clf()
-        a = self.fig.add_subplot(111)
-        a.set_title('Loading data...', fontsize=36)
-        a.set_axis_off()
-        self.canvas.show()
+        if self.preview_on:
+            a = self.fig.add_subplot(111)
+            a.set_title('Loading data...', fontsize=36)
+            a.set_axis_off()
+            self.canvas.show()
+        else:
+            a = self.fig.add_subplot(111)
+            a.set_title('No preview', fontsize=36)
+            a.set_axis_off()
+            self.canvas.show()
 
     def plot_preview(self):
-        self.fig.clf()
-        a = self.fig.add_subplot(111)
-        subsa=1
-        time = np.arange(0,len(self.data[::subsa,0]))
-        a.scatter(self.data[::subsa,0],self.data[::subsa,1], s=0.25, c=time, cmap=cm.viridis, alpha=0.5)
-        self.canvas.show()
+        self.plot_opt = "BASIC"
+
+        if self.preview_on:
+            self.fig.clf()
+            a = self.fig.add_subplot(111)
+            subsa=1
+            time = np.arange(0,len(self.data[::subsa,0]))
+            if self.plot_opt == "BASIC":
+                a.scatter(self.data[::subsa,0],self.data[::subsa,1], s=0.25)
+            elif self.plot_opt == "TIME":
+                a.scatter(self.data[::subsa,0],self.data[::subsa,1], s=0.25, c=time, cmap=cm.viridis, alpha=0.5)
+            else:
+                pass
+            self.canvas.show()
 
 
     def set_item(self, _item):
-        curr_item = _item['text'].split("\t")[0]
-        curr_type = _item['text'].split("\t")[1]
+        curr_item = self.tree.get_item()
+        curr_type = self.tree.get_type()
         keystring = ""
         valstring = ""
 
@@ -197,9 +218,20 @@ class DataViewerApp():
         self.vals.set(valstring)
 
         if curr_type == "[SESSION]":
-            self.load_preview()
+            self.update_preview(curr_item)
+
+    def toggle_preview(self):
+        self.preview_on = not self.preview_on
+        curr_item = self.tree.get_item()
+        curr_type = self.tree.get_type()
+        if curr_type == "[SESSION]":
+            self.update_preview(curr_item)
+
+    def update_preview(self, curr_item):
+        self.load_preview()
+        if self.preview_on:
             self.data = np.loadtxt(self.dir+os.sep+curr_item+".csv", usecols=[0, 1])
-            self.plot_preview()
+        self.plot_preview()
 
 
     def update_tree(self, _title, _dict):
