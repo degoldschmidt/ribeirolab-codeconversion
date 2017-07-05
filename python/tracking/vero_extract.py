@@ -102,7 +102,10 @@ def json_dump(_files, labels=["CANS", "ORCO", "TBEH"]):
                 outdict[idx][k][str(k2)] = str(v2)
 
         #print(outdict[idx].keys())
-        outfold = "E:/Dennis/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/"
+        if os.name == 'nt':
+            outfold = "E:/Dennis/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/"
+        else:
+            outfold = "/Users/degoldschmidt/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/"
         json.dump(outdict[idx],codecs.open(outfold+ex+".json", 'w', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
 
 def data_dump(_files, labels=["CANS", "ORCO", "TBEH"]):
@@ -124,7 +127,10 @@ def data_dump(_files, labels=["CANS", "ORCO", "TBEH"]):
                 filearray[:,idx] = np.array(df)[:,0]
                 del df
             fname = ex + "_{:03d}".format(flies+1)
-            outfold = "E:/Dennis/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/"
+            if os.name == 'nt':
+                outfold = "E:/Dennis/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/"
+            else:
+                outfold = "/Users/degoldschmidt/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/"
             #fullname = _files+os.sep+"new_files"+os.sep+fname
             fullname = outfold + fname
             print("Saving data for:", fname)
@@ -132,15 +138,23 @@ def data_dump(_files, labels=["CANS", "ORCO", "TBEH"]):
             np.savetxt(fullname+".csv", filearray, fmt='%.3f', delimiter='\t', newline='\n', header='body_x\tbody_y\thead_x\thead_y')
             #np.save(fullname+".npy", filearray)
 
+def open_file():
+    root = Tk()
+    root.withdraw()
+    #_files = filedialog.askopenfilenames(title='Choose file to load')
+    root.update()
+    out = filedialog.askdirectory(title='Choose files to load')
+    root.destroy()
+    return out
+
 
 if __name__ == "__main__":
     startdt = now()
     if os.name == 'nt':
         _files = "E:/Dennis/Google Drive/PhD Project/Archive/VERO/tracking_data/"
     else:
-        Tk().withdraw()
-        #_files = filedialog.askopenfilenames(title='Choose file to load')
-        _files = filedialog.askdirectory(title='Choose files to load')
+        _files = open_file()
+
     json_dump(_files)
     data_dump(_files)
     print("Done. Runtime:", strfdelta(now() - startdt, "%H:%M:%S"))
