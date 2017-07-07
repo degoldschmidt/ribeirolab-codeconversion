@@ -2,6 +2,21 @@ import numpy as np
 import pandas as pd
 import os
 
+### Kinematics class loads centroid data and metadata >> processes and returns kinematic data
+
+## ** FUNC: distance_from_patch ** (Inputs: fly pos [tuple], patch_id [int] >> look-up from meta OR patch_pos [tuple])
+
+## ** FUNC: linear_speed ** (Inputs: old fly pos [tuple], new fly pos [tuple], px2mm, framerate)
+
+## ** FUNC: angular_speed ** (Inputs: old fly pos [tuple], new fly pos [tuple], px2mm, framerate)
+
+## ** FUNC: detect_jumps **
+
+## ** FUNC: clear_jumps **
+
+## ** FUNC: detect_jumps **
+
+
 if __name__ == "__main__":
     if os.name == 'nt':
         _file = "E:\Dennis\Google Drive\PhD Project\Archive\VERO\\vero_elife_2016\CANS_008.csv"
