@@ -11,7 +11,7 @@ def par(path, level=1):
 parf = par(os.path.realpath(__file__), level=2)
 sys.path.append(parf)
 from pipeline import Pipeline
-from log import setup_log, get_func, logged
+from log import setup_log, get_func, logged, end_log
 
 """
 Kinematics class: loads centroid data and metadata >> processes and returns kinematic data
@@ -71,9 +71,11 @@ if __name__ == "__main__":
     print(_data.head(5))
     """
 
-    logger = setup_log(None, None)
+    logger = setup_log(None, __name__)
     kin = Kinematics(np.random.rand(100,2), {"this": "that"})
     kin.run()
+    end_log(logger)
+
     #_data = _data.assign(speed_body_x = _data["body_x"].diff())
     #_data = _data.assign(speed_body_y = _data["body_y"].diff())
     #print(_data.head(50))

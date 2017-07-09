@@ -9,14 +9,22 @@ HOME_PATH = ".."+os.sep+".."+os.sep+"log"+os.sep
 FILE_ATTRIBUTE_HIDDEN = 0x02
 
 
+def end_log(logger):
+    logger.info("===*  ENDING SCRIPT  *===")
+    logger.info("=========================")
+
 def get_func():
     return traceback.extract_stack(None, 2)[0][2]
 
 def logged(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
+        ret = f(*args, **kwargs)
         logger = setup_log(args[0], f.__name__)
-        logger.info("calling: "+f.__name__)
+        if f.__name__ == "__init__":
+            logger.info("Initializing: "+ args[0].__class__.__name__+" (version: "+args[0].vcommit+")")
+        else:
+            logger.info("calling: "+f.__name__)
         # if you want names and values as a dictionary:
         if len(args) > 0:
             args_name = inspect.getargspec(f)[0]
@@ -31,8 +39,6 @@ def logged(f):
             logger.info("takes kwarg: "+str(kwargs_dict))
         if len(kwargs) == 0:
             logger.info("takes kwarg: "+str(None))
-
-        ret = f(*args, **kwargs)
         logger.info("returns: "+str(ret))
     return wrapper
 
@@ -41,7 +47,7 @@ def setup_log(_module, _func):
     The main entry point of the logging
     """
     if _module is None:
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger(_func)
     else:
         logger = logging.getLogger(_module.__class__.__name__+"."+_func)
     logger.setLevel(logging.DEBUG)
@@ -68,7 +74,8 @@ def setup_log(_module, _func):
     # add handler to logger object
     logger.addHandler(fh)
 
-    if __name__ == "__main__":
+    if _func == "__main__":
+        logger.info("=========================")
         logger.info("===* STARTING SCRIPT *===")
     else:
         logger.info("Logger initialized")
