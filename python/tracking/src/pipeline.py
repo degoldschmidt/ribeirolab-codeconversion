@@ -44,7 +44,10 @@ class Pipeline():
         *-- function2: __name__, args, kwargs, ret
         |\
         | *-- function2.1: __name__, args, kwargs, ret
-        *-|- function2.2: __name__, args, kwargs, ret 
+        | |
+        *-|-- function2.2: __name__, args, kwargs, ret
+        | |
+        | #== data2.2:  
         V
         """
 
