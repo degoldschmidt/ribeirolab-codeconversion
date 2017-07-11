@@ -1,14 +1,17 @@
 """
 This will be the script in use to perform the kinematics pipeline
+author: Dennis Goldschmidt (degoldschmidt)
+date:   11-07-2017
 """
-### Standard Python
+### Standard Python modules
 
-### Tracking Framework Modules
+### Tracking framework modules
 from tracking.database import Database
 from tracking.analysis.kinematics import Kinematics
 from tracking.benchmark import multibench
-import psutil
 
+### External modules
+import psutil
 
 def load_all_data(db):
         all_sessions = db.sessions() # list of all sessions
@@ -24,7 +27,7 @@ def main():
         _file ="E:/Dennis/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/vero_elife_2016.txt"
         db = Database(_file) # database from file
         data, meta_data = db.experiment("CANS").session("001").load()
-        
+
         #load_all_data(db)
         #print(data.head(10))
         #print(meta_data.px2mm)
