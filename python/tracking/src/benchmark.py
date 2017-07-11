@@ -19,7 +19,7 @@ class benchmark(object):
 
 class multibench(object):
 
-    def __init__(self, times, msg="", fmt="%0.9g", _SILENT=True):
+    def __init__(self, times=1, msg="", fmt="%0.9g", _SILENT=True):
         if not _SILENT:
             print("Start benchmark")
             self.msg = msg

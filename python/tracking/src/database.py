@@ -1,16 +1,14 @@
 import os
-from fileio import json2dict
-from graphdict import GraphDict
 import numpy as np
 import pandas as pd
-### not needed later
-from benchmark import multibench
+from . import fileio
+from . import graphdict
 
 
 class Database(object):
     def __init__(self, _filename):
         dictstruct = self.load_db(_filename)
-        self.struct = GraphDict(dictstruct)
+        self.struct = graphdict.GraphDict(dictstruct)
         self.dir = os.path.dirname(_filename)
         self.name = os.path.basename(_filename).split(".")[0]
 
@@ -60,13 +58,20 @@ class Database(object):
                 break
         return outdict
 
+    def sessions(self):
+        outlist = []
+        for exp in self.experiments:
+            for ses in exp.sessions:
+                outlist.append(ses)
+        return outlist
+
     def __str__(self):
         return str(self.struct)
 
 
 class Experiment(object):
     def __init__(self, _file):
-        self.dict = json2dict(_file)
+        self.dict = fileio.json2dict(_file)
         self.file = _file
         self.name = _file.split(os.sep)[-1].split(".")[0]
 
@@ -151,10 +156,3 @@ Meta-data for session {:}
             str += "({:})\t{:}:\n\t\t\t{:}\n\n".format(i,k,self.dict[k])
         str += "\n"
         return str
-
-if __name__=="__main__":
-    _file ="E:/Dennis/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/vero_elife_2016.txt"
-    db = Database(_file)
-    data, meta_data = db.experiment("CANS").session("001").load()
-    print(data.head(10))
-    print(meta_data.px2mm)
