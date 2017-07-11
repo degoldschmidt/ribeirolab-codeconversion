@@ -12,7 +12,6 @@ def gaussian_filtered(_X, _len=16, _sigma=1.6):
     return np.convolve(_X, window, "same")
 
 testsamples = 1000000
-
 def gaussian_test_pd():
     #np.random.seed(42)
     N=testsamples
@@ -25,9 +24,7 @@ def gaussian_test_np():
     noise = np.random.randn(N)
     series = np.sin(np.linspace(0,50,num=N))
     convolved = gaussian_filtered(series+noise, _len=16)
-
-
-
+    
 if __name__ == "__main__":
     test = multibench(100)   # start benchmark for 10 repetitions
     test(gaussian_test_np)  # perform benchmark for given function
