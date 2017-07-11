@@ -1,10 +1,13 @@
 import tkinter as tk
 from tkinter import messagebox, filedialog
 from tkinter import ttk
+import os,sys,os.path
+cwd = os.getcwd()
+sys.path.append(os.path.dirname(cwd))
+import numpy as np
+
 import data_integrity as di
 from gui_elements import TreeListBox, MenuBar
-import os,sys,os.path
-import numpy as np
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -14,6 +17,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 from matplotlib import cm
+from os.path import expanduser
+homedir = expanduser("~") #os.environ['ALLUSERSPROFILE']
 
 #### test seaborn style
 import seaborn as sns
@@ -102,7 +107,7 @@ class DataViewerApp():
         self.preview_on = False
 
         try:
-            with open("."+os.sep+"last_login.txt", 'r') as f:
+            with open(homedir+os.sep+"tracking_user_data"+os.sep+"last_login.txt", 'r') as f:
                 lines = f.readlines()
             if len(lines[0]) > 0:
                 self.thisfile = lines[0]
@@ -115,8 +120,12 @@ class DataViewerApp():
 
     def file_open(self):
         self.thisfile = filedialog.askopenfilename(title='Choose database to load', parent=self.master, **FILEOPENOPTIONS)
-        with open("."+os.sep+"last_login.txt", 'w') as f:
+        saveat = homedir+os.sep+"tracking_user_data"+os.sep+"last_login.txt"
+        if not os.path.exists(os.path.dirname(saveat)):
+            os.makedirs(os.path.dirname(saveat))
+        with open(saveat, 'w') as f:
             f.write(self.thisfile)
+        print("Saved @ " + saveat)
         self.load_file()
 
     def load_file(self):
