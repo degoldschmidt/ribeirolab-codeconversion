@@ -1,14 +1,11 @@
-""" Only for testing
-"""
-import tkinter as tk
-from tkinter import messagebox, filedialog
-from tkinter import ttk
-
-""" Really required for classes
-"""
 import os
 from fileio import json2dict
 from graphdict import GraphDict
+import numpy as np
+import pandas as pd
+### not needed later
+from benchmark import multibench
+
 
 class Database(object):
     def __init__(self, _filename):
@@ -101,6 +98,9 @@ class Experiment(object):
             for ses in self.sessions:
                 if ses.name == identifier:
                     return ses
+            for ses in self.sessions:
+                if identifier in ses.name:
+                    return ses
         return "[ERROR]: session not found."
 
 
@@ -128,12 +128,17 @@ class Session(object):
         return str
 
     def load(self, load_as="pd"):
+        meta_data = self
+        filedir = os.path.dirname(self.file)
+        filename = filedir + os.sep + self.name +".csv"
         if load_as == "pd":
-            pass
+            data = pd.read_csv(filename, sep="\t", escapechar="#")
+            data = data.rename(columns = {" body_x":'body_x'})    ### TODO: fix this in data conversion
         elif load_as == "np":
-            pass
+            data = np.loadtxt(filename)
         else:
-            print("[ERROR]: session not found.")
+            print("[ERROR]: session not found.")                  ### TODO
+        return data, meta_data
 
     def nice(self):
         str = """
@@ -148,12 +153,8 @@ Meta-data for session {:}
         return str
 
 if __name__=="__main__":
-    """ only needed for filedialog
-    FILEOPENOPTIONS = dict(defaultextension='.txt',
-                      filetypes=[('All files','*.*'), ('Bin file','*.txt')])
-    tk.Tk().withdraw()
-    """
-
-    _file ="E:/Dennis/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/vero_elife_2016.txt" ##filedialog.askopenfilename(title='Choose database to load', **FILEOPENOPTIONS)
+    _file ="E:/Dennis/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/vero_elife_2016.txt"
     db = Database(_file)
-    print(db.experiment("CANS").session(0).keys())
+    data, meta_data = db.experiment("CANS").session("001").load()
+    print(data.head(10))
+    print(meta_data.px2mm)
