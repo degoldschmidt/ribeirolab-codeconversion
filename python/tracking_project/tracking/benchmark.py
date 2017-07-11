@@ -20,8 +20,8 @@ class benchmark(object):
 class multibench(object):
 
     def __init__(self, times=1, msg="", fmt="%0.9g", _SILENT=True):
+        print("Starting benchmark:")
         if not _SILENT:
-            print("Start benchmark")
             self.msg = msg
         else:
             self.msg = ""
