@@ -4,9 +4,11 @@ author: Dennis Goldschmidt (degoldschmidt)
 date:   11-07-2017
 """
 ### Standard Python modules
+import os
 
 ### Tracking framework modules
 from tracking.database import Database
+from tracking.preprocessing.filtering import gaussian_filter
 from tracking.analysis.kinematics import Kinematics
 from tracking.benchmark import multibench
 
@@ -24,9 +26,30 @@ def load_all_data(db):
                 data, meta_data = session.load()
 
 def main():
-        _file ="E:/Dennis/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/vero_elife_2016.txt"
+        if os.name == 'nt':
+            _file = "E:/Dennis/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/vero_elife_2016.txt"
+        else:
+            _file = "/Users/degoldschmidt/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/vero_elife_2016.txt"
         db = Database(_file) # database from file
         data, meta_data = db.experiment("CANS").session("001").load()
+
+        ## STEP 1: NaN removal + interpolation
+        interpolated_data = data.interpolate()
+        #print(interpolated_data.head(5))
+
+        ## STEP 2: Gaussian filtering
+        smoothed_data = gaussian_filter(interpolated_data)
+        #print(smoothed_data.head(5))
+
+        ## STEP 3: regrouping data to body and head position
+        body_pos, head_pos = smoothed_data[['body_x', 'body_y']], smoothed_data[['head_x', 'head_y']]
+
+        ## STEP 4: Distance from patch
+        kine = Kinematics(smoothed_data, meta_data.dict)
+        distance_patch = kine.distance_to_patch(smoothed_data, meta_data.dict)
+        print(meta_data.keys())
+
+        ## STEP 5: Speed
 
         #load_all_data(db)
         #print(data.head(10))

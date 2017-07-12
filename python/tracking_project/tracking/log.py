@@ -5,7 +5,11 @@ import traceback
 from functools import wraps
 from os.path import expanduser
 import inspect, itertools
-HOME_PATH = ".."+os.sep+".."+os.sep+"log"+os.sep
+homedir = os.environ['HOME']
+logfiledir = homedir+os.sep+"tracking_user_data"+os.sep+"log"+os.sep
+if not os.path.exists(logfiledir):
+    os.makedirs(os.path.dirname(logfiledir))
+
 FILE_ATTRIBUTE_HIDDEN = 0x02
 
 
@@ -42,7 +46,7 @@ def logged(f):
         logger.info("returns: "+str(ret))
     return wrapper
 
-def setup_log(_module, _func):
+def setup_log(_module, _func, _name="main.log"):
     """
     The main entry point of the logging
     """
@@ -53,9 +57,8 @@ def setup_log(_module, _func):
     logger.setLevel(logging.DEBUG)
 
     # create the logging file handler
-    logpath = "~"+os.sep+"crtrack"+os.sep
     prefix = '.' if os.name != 'nt' else ''
-    file_name = HOME_PATH + prefix + "main.log"
+    file_name = logfiledir + prefix + _name
     if not os.path.exists(file_name):
         print("created file:"+file_name)
         with open(file_name, 'w+') as f:

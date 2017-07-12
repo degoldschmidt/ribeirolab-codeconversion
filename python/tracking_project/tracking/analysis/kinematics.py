@@ -34,15 +34,12 @@ class Kinematics(Pipeline):
         #logger.info( "initialized Kinematics pipeline (version:"+str(self)+")" )
 
     @logged
-    def get_distance_from_patch(self):
-        pass
+    def distance_to_patch(self, _X, _patch_pos):
+        print("Hello")
+        return 0
 
     @logged
-    def get_distance_from_patch(self):
-        pass
-
-    @logged
-    def get_linear_speed(self):
+    def linear_speed(self):
         pass
 
     @logged
