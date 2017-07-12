@@ -35,6 +35,16 @@ class Database(object):
                     return exp
         return "[ERROR]: experiment not found."
 
+    def find(self, eqs):
+        for alleq in eqs:
+            key = eqs.split("=")[0]
+            val = eqs.split("=")[1]
+            lstr = []
+            for ses in self.sessions():
+                if ses.dict[key] == val:
+                    lstr.append(ses.name)
+        return lstr
+
     def load_db(self, _file):
         try:
             with open(_file) as f:

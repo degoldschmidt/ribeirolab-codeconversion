@@ -5,17 +5,28 @@ import traceback
 from functools import wraps
 from os.path import expanduser
 import inspect, itertools
-homedir = os.environ['HOME']
-logfiledir = homedir+os.sep+"tracking_user_data"+os.sep+"log"+os.sep
-if not os.path.exists(logfiledir):
-    os.makedirs(os.path.dirname(logfiledir))
+import sys
+from set_path import is_set
+
+if os.name == 'nt':
+    HOMEDIR = os.environ['ALLUSERSPROFILE']
+else:
+    HOMEDIR = os.environ['HOME']
+PROFILE = HOMEDIR+os.sep+"profile.txt"
+if is_set(PROFILE):
+    with open(PROFILE, 'r') as f:
+        LOGFILE = f.readlines()[0] + os.sep
+else:
+    LOGFILE = HOMEDIR+os.sep+"tracking_user_data"+os.sep+"log"+os.sep
+if not os.path.exists(LOGFILE):
+    os.makedirs(os.path.dirname(LOGFILE))
 
 FILE_ATTRIBUTE_HIDDEN = 0x02
 
 
 def end_log(logger):
     logger.info("===*  ENDING SCRIPT  *===")
-    logger.info("=========================")
+    logger.info("==================================================")
 
 def get_func():
     return traceback.extract_stack(None, 2)[0][2]
@@ -44,9 +55,10 @@ def logged(f):
         if len(kwargs) == 0:
             logger.info("takes kwarg: "+str(None))
         logger.info("returns: "+str(ret))
+        return ret
     return wrapper
 
-def setup_log(_module, _func, _name="main.log"):
+def setup_log(_module, _func, filename="main.log", scriptname="MyScript"):
     """
     The main entry point of the logging
     """
@@ -58,7 +70,7 @@ def setup_log(_module, _func, _name="main.log"):
 
     # create the logging file handler
     prefix = '.' if os.name != 'nt' else ''
-    file_name = logfiledir + prefix + _name
+    file_name = LOGFILE + prefix + filename
     if not os.path.exists(file_name):
         print("created file:"+file_name)
         with open(file_name, 'w+') as f:
@@ -78,8 +90,12 @@ def setup_log(_module, _func, _name="main.log"):
     logger.addHandler(fh)
 
     if _func == "__main__":
-        logger.info("=========================")
-        logger.info("===* STARTING SCRIPT *===")
+        logger.info("==================================================")
+        logger.info("===* STARTING SCRIPT: {:} *===".format(scriptname))
+        logger.info("Hosted @ {:} (OS: {:})".format(os.environ["COMPUTERNAME"],os.environ["OS"]))
+        logger.info("Python version: {:}".format(sys.version))
+        print("Log file @ " + file_name)
     else:
-        logger.info("Logger initialized")
+        pass
+        #logger.info("Logger initialized")
     return logger

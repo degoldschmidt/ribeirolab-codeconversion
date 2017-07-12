@@ -6,7 +6,6 @@ import time
 
 
 def gaussian_filter(_df, _len=16, _sigma=1.6):
-
     cols = np.empty((len(_df.index), len(_df.columns)))
     cols.fill(np.nan)
     header = []

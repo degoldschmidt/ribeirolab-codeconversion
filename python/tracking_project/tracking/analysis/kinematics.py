@@ -28,22 +28,44 @@ class Kinematics(Pipeline):
         ## overrides path-to-file and hash of last file-modified commit (version)
         self.filepath = os.path.realpath(__file__)
         self.vcommit = sub.check_output(["git", "log", "-n 1", "--pretty=format:%H", "--", self.filepath]).decode('UTF-8')
+        self.dt = 1/_metadata["framerate"]
 
         ## logging
         #logger = setup_log(self, get_func())
         #logger.info( "initialized Kinematics pipeline (version:"+str(self)+")" )
 
     @logged
-    def distance_to_patch(self, _X, _patch_pos):
-        print("Hello")
-        return 0
-
-    @logged
-    def linear_speed(self):
+    def angular_speed(self, _X):
         pass
 
     @logged
-    def run(self):
+    def distance(self, _X, _Y):
+        x1, y1 = np.array(_X[_X.columns[0]]), np.array(_X[_X.columns[1]])
+        x2, y2 = np.array(_Y[_Y.columns[0]]), np.array(_Y[_Y.columns[1]])
+        dist_sq = np.square(x1 - x2) + np.square(y1 - y2)
+        dist = np.sqrt(dist_sq)
+        dist[dist==np.nan] = -1 # NaNs to -1
+        df = pd.DataFrame({'distance': dist})
+        return df
+
+    @logged
+    def distance_to_patch(self, _X, _patch_pos):
+        return 0
+
+    @logged
+    def forward_speed(self, _X):
+        pass
+
+    @logged
+    def head_angle(self, _X):
+        pass
+
+    @logged
+    def linear_speed(self, _X):
+        pass
+
+    @logged
+    def sideward_speed(self, _X):
         pass
 
 ## ** FUNC: distance_from_patch ** (Inputs: fly pos [tuple], patch_id [int] >> look-up from meta OR patch_pos [tuple])
@@ -69,8 +91,8 @@ if __name__ == "__main__":
     """
 
     logger = setup_log(None, __name__)
-    kin = Kinematics(np.random.rand(100,2), {"this": "that"})
-    kin.run()
+    kin = Kinematics(np.random.rand(100,2), {"framerate": 50})
+    this = kin.distance()
     end_log(logger)
 
     #_data = _data.assign(speed_body_x = _data["body_x"].diff())
