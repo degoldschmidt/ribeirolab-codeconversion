@@ -1,7 +1,7 @@
 import os
 from datetime import datetime as date
 
-from set_path import get_path, is_set
+from set_path import get_path, is_set, set_path
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,21 +12,22 @@ sns.set_style("ticks")
 if is_set(get_path()):
     with open(get_path(), 'r') as f:
         PATH_PLOT = os.path.join(f.readlines()[0], "plots")
-PATH_PLOT = PATH_PLOT.replace("/","\\")
-print(PATH_PLOT)
+else:
+    set_path()
 if not is_set(PATH_PLOT):
     os.makedirs(PATH_PLOT)
+print(PATH_PLOT)
 
 DATET_FMT = "%Y-%m-%dT%H-%M-%S"
 FILEFMT = ".svg"
 
-def savefig(f, title="", as_fmt=""):
+def savefig(f, title="", as_fmt="", dpi=90):
     tst = date.now().strftime(DATET_FMT)
     if len(as_fmt) == 0:
         endf = FILEFMT
     else:
         endf = "."+as_fmt
-    f[0].savefig(os.path.join(PATH_PLOT, title+"_"+tst+endf), dpi=90)
+    f[0].savefig(os.path.join(PATH_PLOT, title+"_"+tst+endf), dpi=dpi)
 
 def trajectory2D(_data, plot_opt="BASIC", subsampl=1, title=""):
     f, ax = plt.subplots(1 ,figsize=(5, 5), dpi=90)

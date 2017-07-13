@@ -10,8 +10,12 @@ from set_path import is_set
 
 if os.name == 'nt':
     HOMEDIR = os.environ['ALLUSERSPROFILE']
+    NAME = os.environ["COMPUTERNAME"]
+    OS = os.environ["OS"]
 else:
     HOMEDIR = os.environ['HOME']
+    NAME = os.environ["LOGNAME"]
+    OS = os.name
 PROFILE = HOMEDIR+os.sep+"profile.txt"
 if is_set(PROFILE):
     with open(PROFILE, 'r') as f:
@@ -21,7 +25,7 @@ else:
 if not os.path.exists(LOGFILE):
     os.makedirs(os.path.dirname(LOGFILE))
 
-FILE_ATTRIBUTE_HIDDEN = 0x02
+#FILE_ATTRIBUTE_HIDDEN = 0x02
 
 
 def end_log(logger):
@@ -54,7 +58,7 @@ def logged(f):
             logger.info("takes kwarg: "+str(kwargs_dict))
         if len(kwargs) == 0:
             logger.info("takes kwarg: "+str(None))
-        logger.info("returns: "+str(ret))
+        logger.info("returns: "+str(type(ret)))
         return ret
     return wrapper
 
@@ -70,7 +74,7 @@ def setup_log(_module, _func, filename="main.log", scriptname="MyScript"):
 
     # create the logging file handler
     prefix = '.' if os.name != 'nt' else ''
-    file_name = LOGFILE + prefix + filename
+    file_name = LOGFILE + filename
     if not os.path.exists(file_name):
         print("created file:"+file_name)
         with open(file_name, 'w+') as f:
@@ -92,7 +96,7 @@ def setup_log(_module, _func, filename="main.log", scriptname="MyScript"):
     if _func == "__main__":
         logger.info("==================================================")
         logger.info("===* STARTING SCRIPT: {:} *===".format(scriptname))
-        logger.info("Hosted @ {:} (OS: {:})".format(os.environ["COMPUTERNAME"],os.environ["OS"]))
+        logger.info("Hosted @ {:} (OS: {:})".format(NAME, OS))
         logger.info("Python version: {:}".format(sys.version))
         print("Log file @ " + file_name)
     else:

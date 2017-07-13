@@ -68,11 +68,11 @@ def main():
         figure = []
 
         ## Fig 1
-        start = 58085
-        end = 62577
-        head_pos.loc[start:end,['head_x', 'head_y']]
-        figure.append(pplt.trajectory2D(raw_data[['body_x', 'body_y']], title= "Raw data"))
-        #pplt.savefig(figure[0], title="Fig1_raw_trajectory", as_fmt="png")
+        start = 55900#58085
+        end = 65500#62577
+        test = head_pos.loc[start:end,['head_x', 'head_y']]
+        figure.append(pplt.trajectory2D(test[['head_x', 'head_y']], title= "Raw data"))
+        pplt.savefig(figure[0], title="test", as_fmt="png", dpi=300)
 
         ## Fig 2
         #figure.append(pplt.trajectory2D(body_pos, title= "Cleaned & smoothed data"))
