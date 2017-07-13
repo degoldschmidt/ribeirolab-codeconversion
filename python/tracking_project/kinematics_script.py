@@ -7,12 +7,12 @@ date:   11-07-2017
 import os
 
 ### Tracking framework modules
+from tracking.project import Project
 from tracking.database import Database
 from tracking.preprocessing.cleaning import interpolate, to_mm
 from tracking.preprocessing.filtering import gaussian_filter
 from tracking.analysis.kinematics import Kinematics
 from tracking.benchmark import multibench
-from tracking.log import *
 import tracking.pubplot as pplt
 
 ### External modules
@@ -33,11 +33,8 @@ def load_all_data(db):
                 data, meta_data = session.load()
 """
 
-def main():
-        if os.name == 'nt':
-            _file = "E:/Dennis/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/vero_elife_2016.txt"
-        else:
-            _file = "/Users/degoldschmidt/Google Drive/PhD Project/Archive/VERO/vero_elife_2016/vero_elife_2016.txt"
+def main(project):
+        _file = project.get_db()
         db = Database(_file) # database from file
         #print(db.find('Videofilename=0003A01R01Cam03.avi'))
         raw_data, meta_data = db.experiment("CANS").session("005").load()
@@ -57,7 +54,7 @@ def main():
         body_pos, head_pos = smoothed_data[['body_x', 'body_y']], smoothed_data[['head_x', 'head_y']]
 
         ## STEP 4: Distance from patch
-        kinematics = Kinematics(smoothed_data, meta_data.dict)
+        kinematics = Kinematics(smoothed_data, meta_data.dict, logger=project.logger)
         distance_patch = kinematics.distance_to_patch(smoothed_data, meta_data.dict)
         dist = kinematics.distance(smoothed_data[['body_x', 'body_y']], clean_data[['body_x', 'body_y']])
 
@@ -66,6 +63,7 @@ def main():
 
         ## PLOTTING
         figure = []
+        pplt.set_path(project.get_plot())
 
         ## Fig 1
         start = 55900#58085
@@ -74,26 +72,15 @@ def main():
         figure.append(pplt.trajectory2D(test[['head_x', 'head_y']], title= "Raw data"))
         pplt.savefig(figure[0], title="test", as_fmt="png", dpi=300)
 
-        ## Fig 2
-        #figure.append(pplt.trajectory2D(body_pos, title= "Cleaned & smoothed data"))
-        #pplt.savefig(figure[1], title="Fig2_smooth_trajectory", as_fmt="png")
-
-        ## Fig 3
-        #figure.append(pplt.time_series(dist, dt=1/meta_data.framerate))
-        #pplt.savefig(figure[2], title="Fig3_error", as_fmt="png")
-
         #pplt.show()
 
-        #load_all_data(db)
-        #print(data.head(10))
-        #print(meta_data.px2mm)
-
 if __name__=="__main__":
-        logger = setup_log(None, __name__, scriptname=os.path.basename(__file__).split(".")[0])
+        thisscript = os.path.basename(__file__).split(".")[0]                    # filename of this script
+        proj = Project("Vero eLife 2016", "degoldschmidt", script=thisscript)    # project object
         #### BENCHMARKING
         #test = multibench()
         #test(main)
         #del test
         ####
-        main()
-        end_log(logger)
+        main(proj)
+        del proj

@@ -1,23 +1,13 @@
 import os
 from datetime import datetime as date
 
-from set_path import get_path, is_set, set_path
-
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import seaborn as sns
 sns.set_style("ticks")
 
-if is_set(get_path()):
-    with open(get_path(), 'r') as f:
-        PATH_PLOT = os.path.join(f.readlines()[0], "plots")
-else:
-    set_path()
-if not is_set(PATH_PLOT):
-    os.makedirs(PATH_PLOT)
-print(PATH_PLOT)
-
+PATH_PLOT = ""
 DATET_FMT = "%Y-%m-%dT%H-%M-%S"
 FILEFMT = ".svg"
 
@@ -28,6 +18,9 @@ def savefig(f, title="", as_fmt="", dpi=90):
     else:
         endf = "."+as_fmt
     f[0].savefig(os.path.join(PATH_PLOT, title+"_"+tst+endf), dpi=dpi)
+
+def set_path(_inpath):
+    PATH_PLOT = _inpath
 
 def trajectory2D(_data, plot_opt="BASIC", subsampl=1, title=""):
     f, ax = plt.subplots(1 ,figsize=(5, 5), dpi=90)

@@ -21,11 +21,13 @@ Pipeline class:
 """
 class Pipeline():
 
-    def __init__(self, _data, _metadata):
+    def __init__(self, _data, _metadata, logger=None):
         self.data = _data.copy()
         self.metadata = _metadata.copy()
         self.filepath = os.path.realpath(__file__)
         self.vcommit = sub.check_output(["git", "log", "-n 1", "--pretty=format:%H", "--", self.filepath]).decode('UTF-8')
+
+        self.logger = logger
 
         ### pipeline contains operations, variables and parameters
         self.ops = {}
@@ -47,7 +49,7 @@ class Pipeline():
         | |
         *-|-- function2.2: __name__, args, kwargs, ret
         | |
-        | #== data2.2:  
+        | #== data2.2:
         V
         """
 
