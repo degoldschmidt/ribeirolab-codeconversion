@@ -1,20 +1,6 @@
 import os
 import subprocess as sub
-
-"""
-Operator class:
-"""
-class Operator():
-    def __init__(self, _f):
-        self.func = _f
-
-    def __mul__(self, other):
-        if other is not Operator:
-            return self.func(other)
-
-    def __rmul__(self, other):
-        return self.func(other)
-
+import project
 
 """
 Pipeline class:

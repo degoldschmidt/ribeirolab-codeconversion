@@ -8,12 +8,14 @@ import os
 
 ### Tracking framework modules
 from tracking.project import Project
+thisscript = os.path.basename(__file__).split(".")[0]                    # filename of this script
+proj = Project("Vero eLife 2016", "degoldschmidt", script=thisscript)    # project object
 from tracking.database import Database
-#from tracking.preprocessing.cleaning import interpolate, to_mm
-#from tracking.preprocessing.filtering import gaussian_filter
-#from tracking.analysis.kinematics import Kinematics
-#from tracking.benchmark import multibench
-#import tracking.pubplot as pplt
+from tracking.preprocessing.cleaning import interpolate, to_mm
+from tracking.preprocessing.filtering import gaussian_filter
+from tracking.analysis.kinematics import Kinematics
+from tracking.benchmark import multibench
+import tracking.pubplot as pplt
 
 ### External modules
 import numpy as np
@@ -22,18 +24,6 @@ import psutil # if I want to monitor RAM usage. >>> mem = psutil.virtual_memory(
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-
-"""this is just a test
-def load_all_data(db):
-        all_sessions = db.sessions() # list of all sessions
-        length_db = len(all_sessions) # number of all sessions
-        for i, session in enumerate(all_sessions):
-                if i%(int(length_db/10))==0:
-                        print(session)
-                        mem = psutil.virtual_memory()
-                        print("{:3d}% done. {:4.1f}% RAM used.".format(int(100*i/length_db), mem.percent))
-                data, meta_data = session.load()
-"""
 
 def main(project):
         _file = project.get_db()
@@ -56,7 +46,7 @@ def main(project):
         body_pos, head_pos = smoothed_data[['body_x', 'body_y']], smoothed_data[['head_x', 'head_y']]
 
         ## STEP 4: Distance from patch
-        kinematics = Kinematics(smoothed_data, meta_data.dict, logger=project.logger)
+        kinematics = Kinematics(smoothed_data, meta_data.dict)
         distance_patch = kinematics.distance_to_patch(smoothed_data, meta_data.dict)
         dist = kinematics.distance(smoothed_data[['body_x', 'body_y']], clean_data[['body_x', 'body_y']])
 
@@ -77,12 +67,13 @@ def main(project):
         #pplt.show()
 
 if __name__=="__main__":
-        thisscript = os.path.basename(__file__).split(".")[0]                    # filename of this script
-        proj = Project("Vero eLife 2016", "degoldschmidt", script=thisscript)    # project object
         #### BENCHMARKING
         #test = multibench()
         #test(main)
         #del test
         ####
-        #main(proj)
+        try:
+            main(proj)
+        except (RuntimeError, TypeError, NameError):
+            pass
         del proj

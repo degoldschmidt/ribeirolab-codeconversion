@@ -11,7 +11,7 @@ def par(path, level=1):
 parf = par(os.path.realpath(__file__), level=2)
 sys.path.append(parf)
 from pipeline import Pipeline
-from project import Logger
+from project import logged_f
 
 """
 Kinematics class: loads centroid data and metadata >> processes and returns kinematic data
@@ -19,7 +19,7 @@ Kinematics class: loads centroid data and metadata >> processes and returns kine
 class Kinematics(Pipeline):
 
     #@Logger.logged
-    def __init__(self, _data, _metadata, logger=None):
+    def __init__(self, _data, _metadata):
         """
         Initializes the class. Setting up internal variables for input data; setting up logging.
         """
@@ -30,17 +30,15 @@ class Kinematics(Pipeline):
         self.vcommit = sub.check_output(["git", "log", "-n 1", "--pretty=format:%H", "--", self.filepath]).decode('UTF-8')
         self.dt = 1/_metadata["framerate"]
 
-        self.logger = logger
-
         ## logging
         #logger = setup_log(self, get_func())
         #logger.info( "initialized Kinematics pipeline (version:"+str(self)+")" )
 
-    #@Loggerlogged
+    #@Pipeline.logged
     def angular_speed(self, _X):
         pass
 
-    #@Logger.logged
+    @logged_f("woo")
     def distance(self, _X, _Y):
         x1, y1 = np.array(_X[_X.columns[0]]), np.array(_X[_X.columns[1]])
         x2, y2 = np.array(_Y[_Y.columns[0]]), np.array(_Y[_Y.columns[1]])
@@ -50,11 +48,11 @@ class Kinematics(Pipeline):
         df = pd.DataFrame({'distance': dist})
         return df
 
-    #@Logger.logged
+    @logged_f("woo")
     def distance_to_patch(self, _X, _patch_pos):
         return 0
 
-    #@logged
+    #@logged("woo")
     def forward_speed(self, _X):
         pass
 

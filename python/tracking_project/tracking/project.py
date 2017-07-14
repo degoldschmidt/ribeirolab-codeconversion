@@ -2,6 +2,7 @@
 import os, sys
 from datetime import datetime as date
 import logging
+import logging.config
 from functools import wraps
 
 ### External modules
@@ -37,7 +38,10 @@ if not os.path.exists(PROFILE):
         yaml.dump({'USERS': [], 'PROJECTS': []}, outfile, default_flow_style=False, allow_unicode=True)
 with open(PROFILE, 'r') as stream:
     test = yaml.load(stream)
-    if 'USERS' not in test.keys() or 'PROJECTS' not in test.keys():
+    if test is None:
+        with io.open(PROFILE, 'w+', encoding='utf8') as outfile:
+            yaml.dump({'USERS': [], 'PROJECTS': []}, outfile, default_flow_style=False, allow_unicode=True)
+    elif 'USERS' not in test.keys() or 'PROJECTS' not in test.keys():
         with io.open(PROFILE, 'w+', encoding='utf8') as outfile:
             yaml.dump({'USERS': [], 'PROJECTS': []}, outfile, default_flow_style=False, allow_unicode=True)
 
@@ -59,9 +63,6 @@ class Project(object):
         if _user not in self.profile[self.name]["users"]:
             self.add_user()
         print("Loaded [PROJECT] {:}".format(self.name))
-
-        self.logger = Logger(self, script)
-        self.log = self.logger.log
 
     def __del__(self):
         with io.open(PROFILE, 'w+', encoding='utf8') as outfile:
@@ -111,9 +112,9 @@ class Project(object):
             if asksave == "no":
                 return
         """
-        dbfile = 0#filedialog.askopenfilename(title="Load database")
+        dbfile = filedialog.askopenfilename(title="Load database")
         self.system["database"] = dbfile
-        viddir = 0#filedialog.askdirectory(title="Load directory with raw video files")
+        viddir = filedialog.askdirectory(title="Load directory with raw video files")
         self.system["videos"] = viddir
 
     def set_project(self):
@@ -133,10 +134,19 @@ class Project(object):
             if asksave == "no":
                 return
         """
-        outfolder = 0#filedialog.askdirectory(title="Load directory for output")
-        self.system["output"] = outfolder
-        self.system["log"] = os.path.join(outfolder,"main.log")
-        self.system["plot"] = os.path.join(outfolder,"plots")
+        outfolder = filedialog.askdirectory(title="Load directory for output")
+        if len(outfolder) > 0:
+            self.system["output"] = outfolder
+            self.system["log"] = os.path.join(outfolder,"main.log")
+            self.system["plot"] = os.path.join(outfolder,"plots")
+        else:
+            self.system["output"] = os.path.join(USER_DATA_DIR, "output")
+            self.system["log"] = os.path.join(self.system["output"],"main.log")
+            self.system["plot"] = os.path.join(self.system["output"],"plots")
+
+        for each in [self.system["output"], self.system["plot"]]:
+            if not os.path.exists(each):
+                os.makedirs(each)
         self.plot = self.system["plot"]
 
     def set_user(self, _name):
@@ -196,36 +206,18 @@ class Logger(object):
         self.log.setLevel(logging.DEBUG)
         self.log.addHandler(self.fh)
 
-    def logged(self, f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            ret = f(*args, **kwargs)
-            logger = self.rename(args[0].__class__.__name__, f.__name__)
-            if f.__name__ == "__init__":
-                logger.info("Initializing: "+ args[0].__class__.__name__+" (version: "+args[0].vcommit+")")
-            else:
-                logger.info("calling: "+f.__name__)
-            # if you want names and values as a dictionary:
-            if len(args) > 0:
-                args_name = inspect.getargspec(func)[0]
-                args_dict = dict(zip(args_name, [type(arg) for arg in args]))
-                logger.info("takes arg: "+str(args_dict))
-            if len(args) == 0:
-                logger.info("takes arg: "+str(None))
-
-            if len(kwargs) > 0:
-                kwargs_name = inspect.getargspec(func)[2]
-                kwargs_dict = dict(zip(kwargs_name, type(kwargs)))
-                logger.info("takes kwarg: "+str(kwargs_dict))
-            if len(kwargs) == 0:
-                logger.info("takes kwarg: "+str(None))
-            logger.info("returns: "+str(type(ret)))
-            return ret
-        return wrapper
-
     def __del__(self):
         logger = logging.getLogger(self.profile.name)
         logger.setLevel(logging.DEBUG)
         logger.addHandler(self.fh)
         logger.info("===*  ENDING SCRIPT  *===")
         logger.info("==================================================")
+
+def logged_f(logfile):
+    def wrapper(func):
+        @wraps(func)
+        def func_wrapper(*args, **kwargs):
+            print(logfile, func.__name__)
+            return func(*args, **kwargs)
+        return func_wrapper
+    return wrapper
