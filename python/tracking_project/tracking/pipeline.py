@@ -1,6 +1,5 @@
 import os
 import subprocess as sub
-import project
 
 """
 Pipeline class:

@@ -7,13 +7,18 @@ date:   11-07-2017
 import os
 
 ### Tracking framework modules
-from tracking.project import Project
-thisscript = os.path.basename(__file__).split(".")[0]                    # filename of this script
-proj = Project("Vero eLife 2016", "degoldschmidt", script=thisscript)    # project object
+
+## Load profile for this project
+from tracking.profile import get_profile, logged_f, show_profile
+thisscript = os.path.basename(__file__).split(".")[0]                        # filename of this script
+PROFILE = get_profile("Vero eLife 2016", "degoldschmidt", script=thisscript) # project object
+#show_profile(PROFILE)
+
+## other modules
 from tracking.database import Database
 from tracking.preprocessing.cleaning import interpolate, to_mm
 from tracking.preprocessing.filtering import gaussian_filter
-from tracking.analysis.kinematics import Kinematics
+#from tracking.analysis.kinematics import Kinematics
 from tracking.benchmark import multibench
 import tracking.pubplot as pplt
 
@@ -24,7 +29,7 @@ import psutil # if I want to monitor RAM usage. >>> mem = psutil.virtual_memory(
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-
+"""
 def main(project):
         _file = project.get_db()
         db = Database(_file) # database from file
@@ -77,3 +82,4 @@ if __name__=="__main__":
         except (RuntimeError, TypeError, NameError):
             pass
         del proj
+"""

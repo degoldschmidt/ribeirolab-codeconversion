@@ -11,7 +11,7 @@ def par(path, level=1):
 parf = par(os.path.realpath(__file__), level=2)
 sys.path.append(parf)
 from pipeline import Pipeline
-from project import logged_f
+from profile import logged_f
 
 """
 Kinematics class: loads centroid data and metadata >> processes and returns kinematic data

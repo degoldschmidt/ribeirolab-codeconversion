@@ -4,7 +4,6 @@ import pandas as pd
 from . import fileio
 from . import graphdict
 
-
 class Database(object):
     def __init__(self, _filename):
         dictstruct = self.load_db(_filename)
