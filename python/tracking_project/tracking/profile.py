@@ -55,13 +55,11 @@ def get_profile( _name, _user, script=""):
     with open(PROFILE, 'r') as stream:
         profile = yaml.load(stream)
 
-    for projects in profile['$PROJECTS']:
-        profile[projects]["active"] = False
     ### PROJECT EXISTS
     if _name in profile['$PROJECTS']:
         project = profile[_name]
         project["last active"] = nowdate
-        project["active"] = True
+        profile["active"] = _name
 
         systems = project["systems"]
         ### CURRENT COMPUTERNAME IS NOT IN PROFILE
@@ -83,7 +81,7 @@ def get_profile( _name, _user, script=""):
         project["users"].append(_user)
         project["created"] = nowdate
         project["last active"] = nowdate
-        project["active"] = True
+        profile["active"] = _name
 
         project["systems"] = {}
         systems = project["systems"]
@@ -122,6 +120,10 @@ def get_profile( _name, _user, script=""):
         yaml.dump(profile, outfile, default_flow_style=False, allow_unicode=True)
     return profile
 
+def get_plot(profile):
+    return profile[profile['active']]['systems'][NAME]['plot']
+
+
 def set_database(forced=False):
     if not forced:
         asksave = messagebox.askquestion("Set database path", "Are you sure you want to set a new path for the database?", icon='warning')
@@ -156,9 +158,7 @@ def set_output(forced=False):
 
 def show_profile(profile):
     print
-    for projects in profile['$PROJECTS']:
-        if profile[projects]["active"]:
-            current = projects
+    current = profile['active']
     profile_dump = yaml.dump(profile, default_flow_style=False, allow_unicode=True)
     thisstr = profile_dump.split("\n")
     sys.stdout.write(RED)

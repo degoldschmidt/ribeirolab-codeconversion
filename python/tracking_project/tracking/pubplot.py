@@ -21,8 +21,8 @@ def savefig(f, title="", as_fmt="", dpi=90):
         endf = "."+as_fmt
     f[0].savefig(os.path.join(PATH_PLOT, title+"_"+tst+endf), dpi=dpi)
 
-def set_path(_inpath):
-    PATH_PLOT = _inpath
+def get_path():
+    print(PATH_PLOT)
 
 def trajectory2D(_data, plot_opt="BASIC", subsampl=1, title=""):
     f, ax = plt.subplots(1 ,figsize=(5, 5), dpi=90)

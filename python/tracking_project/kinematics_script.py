@@ -9,7 +9,7 @@ import os
 ### Tracking framework modules
 
 ## Load profile for this project
-from tracking.profile import get_profile, logged_f, show_profile
+from tracking.profile import get_profile, logged_f, show_profile, get_plot
 thisscript = os.path.basename(__file__).split(".")[0]                        # filename of this script
 PROFILE = get_profile("Vero eLife 2016", "degoldschmidt", script=thisscript) # project object
 #show_profile(PROFILE)
@@ -21,6 +21,8 @@ from tracking.preprocessing.filtering import gaussian_filter
 #from tracking.analysis.kinematics import Kinematics
 from tracking.benchmark import multibench
 import tracking.pubplot as pplt
+pplt.PATH_PLOT = get_plot(PROFILE)
+pplt.get_path()
 
 ### External modules
 import numpy as np
