@@ -9,16 +9,18 @@ import os
 ### Tracking framework modules
 from tracking.project import Project
 from tracking.database import Database
-from tracking.preprocessing.cleaning import interpolate, to_mm
-from tracking.preprocessing.filtering import gaussian_filter
-from tracking.analysis.kinematics import Kinematics
-from tracking.benchmark import multibench
-import tracking.pubplot as pplt
+#from tracking.preprocessing.cleaning import interpolate, to_mm
+#from tracking.preprocessing.filtering import gaussian_filter
+#from tracking.analysis.kinematics import Kinematics
+#from tracking.benchmark import multibench
+#import tracking.pubplot as pplt
 
 ### External modules
 import numpy as np
 import pandas as pd
 import psutil # if I want to monitor RAM usage. >>> mem = psutil.virtual_memory(); print(mem.precent)
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 """this is just a test
@@ -82,5 +84,5 @@ if __name__=="__main__":
         #test(main)
         #del test
         ####
-        main(proj)
+        #main(proj)
         del proj

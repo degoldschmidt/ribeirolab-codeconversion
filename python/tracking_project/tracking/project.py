@@ -45,6 +45,7 @@ with open(PROFILE, 'r') as stream:
 ### Project class
 class Project(object):
     def __init__(self, _name, _user, script=""):
+        tk.Tk().withdraw()
         self.name = _name
         self.user = _user
         self.date = date.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -104,14 +105,15 @@ class Project(object):
         return self.system["plot"]
 
     def set_database(self, forced=False):
-        tk.Tk().withdraw()
+        """
         if not forced:
             asksave = messagebox.askquestion("Set database path", "Are you sure you want to set a new path for the database?", icon='warning')
             if asksave == "no":
                 return
-        dbfile = filedialog.askopenfilename(title="Load database")
+        """
+        dbfile = 0#filedialog.askopenfilename(title="Load database")
         self.system["database"] = dbfile
-        viddir = filedialog.askdirectory(title="Load directory with raw video files")
+        viddir = 0#filedialog.askdirectory(title="Load directory with raw video files")
         self.system["videos"] = viddir
 
     def set_project(self):
@@ -125,12 +127,13 @@ class Project(object):
         self.system = systems[NAME]
 
     def set_output(self, forced=False):
-        tk.Tk().withdraw()
+        """
         if not forced:
             asksave = messagebox.askquestion("Set output path", "Are you sure you want to set a new path for the output/logging?", icon='warning')
             if asksave == "no":
                 return
-        outfolder = filedialog.askdirectory(title="Load directory for output")
+        """
+        outfolder = 0#filedialog.askdirectory(title="Load directory for output")
         self.system["output"] = outfolder
         self.system["log"] = os.path.join(outfolder,"main.log")
         self.system["plot"] = os.path.join(outfolder,"plots")
