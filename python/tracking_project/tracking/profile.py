@@ -41,6 +41,13 @@ with open(PROFILE, 'r') as stream:
     if test is None:
         with io.open(PROFILE, 'w+', encoding='utf8') as outfile:
             yaml.dump({'$USERS': [], '$PROJECTS': []}, outfile, default_flow_style=False, allow_unicode=True)
+    elif '$LINK' in test.keys():
+        link = test['$LINK']
+        print("Found link to {:}".format(link))
+        PROFILE = os.path.join(link, "profile.yaml")
+        if not os.path.exists(PROFILE):
+            with io.open(PROFILE, 'w+', encoding='utf8') as outfile:
+                yaml.dump({'$USERS': [], '$PROJECTS': []}, outfile, default_flow_style=False, allow_unicode=True)
     elif '$USERS' not in test.keys() or '$PROJECTS' not in test.keys():
         with io.open(PROFILE, 'w+', encoding='utf8') as outfile:
             yaml.dump({'$USERS': [], '$PROJECTS': []}, outfile, default_flow_style=False, allow_unicode=True)
@@ -106,6 +113,7 @@ def get_profile( _name, _user, script=""):
         print("Created [PROJECT] {:}.".format(_name))
 
     ### CREATE NEW USER
+    profile["activeuser"] = _user
     users = profile['$USERS']
     if _user not in users:
         users.append(_user)
@@ -119,6 +127,15 @@ def get_profile( _name, _user, script=""):
     with io.open(PROFILE, 'w+', encoding='utf8') as outfile:
         yaml.dump(profile, outfile, default_flow_style=False, allow_unicode=True)
     return profile
+
+def get_db(profile):
+    return profile[profile['active']]['systems'][NAME]['database']
+
+def get_out(profile):
+    return profile[profile['active']]['systems'][NAME]['output']
+
+def get_log(profile):
+    return profile[profile['active']]['systems'][NAME]['log']
 
 def get_plot(profile):
     return profile[profile['active']]['systems'][NAME]['plot']
@@ -181,16 +198,13 @@ class Logger(object):
         The main entry point of the logging
         """
         self.profile = profile
+        self.scriptname = scriptname
 
         ### logfilename
-        self.file_name = self.profile.get_log()
-        if not os.path.exists(self.file_name):
-            print("created file:"+self.file_name)
-            with open(self.file_name, 'w+') as f:
-                f.close()
+        self.file_name = get_log(profile)
         self.fh = logging.FileHandler(self.file_name)
 
-        self.log = logging.getLogger(self.profile.name)
+        self.log = logging.getLogger(scriptname)
         self.log.setLevel(logging.DEBUG)
 
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -200,27 +214,13 @@ class Logger(object):
 
         self.log.info("==================================================")
         self.log.info("===* STARTING SCRIPT: {:} *===".format(scriptname))
+        self.log.info("Part of project {:} (current user: {:})".format(profile['active'], profile['activeuser']))
         self.log.info("Hosted @ {:} (OS: {:})".format(NAME, OS))
         self.log.info("Python version: {:}".format(sys.version))
-        print("Log file @ " + self.file_name)
 
-    def rename(self, _name, _func):
-        self.log = logging.getLogger(_name+"."+_fun)
-        self.log.setLevel(logging.DEBUG)
-        self.log.addHandler(self.fh)
-
-    def __del__(self):
-        logger = logging.getLogger(self.profile.name)
+    def close(self):
+        logger = logging.getLogger(self.scriptname)
         logger.setLevel(logging.DEBUG)
         logger.addHandler(self.fh)
         logger.info("===*  ENDING SCRIPT  *===")
         logger.info("==================================================")
-
-def logged_f(logfile):
-    def wrapper(func):
-        @wraps(func)
-        def func_wrapper(*args, **kwargs):
-            print(logfile, func.__name__)
-            return func(*args, **kwargs)
-        return func_wrapper
-    return wrapper
